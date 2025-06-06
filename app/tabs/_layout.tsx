@@ -5,17 +5,17 @@ import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import ScrollContextProvider from "../components/ScrollContextProvider";
 import TabBar from "../components/TabBar";
-import { useTheme } from "../theme/ThemeContext";
+import { useTheme } from "../../contexts";
 
 // Custom Drawer Toggle Button with circular background
 function CustomDrawerToggle(props: any) {
   const { colors } = useTheme();
   
   return (
-    <View style={[styles.toggleButtonContainer, { backgroundColor: colors.headerBackground }]}>
+    <View style={[styles.toggleButtonContainer, { backgroundColor: colors.surface }]}>
       <DrawerToggleButton 
         {...props}
-        tintColor={colors.text}
+        tintColor={colors.primary}
       />
     </View>
   );

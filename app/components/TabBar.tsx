@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../theme/ThemeContext";
+import { useTheme } from "../../contexts";
 import TabBarButton from "./TabBarButton";
 
 // Animation configuration constants

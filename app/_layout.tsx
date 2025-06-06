@@ -2,20 +2,37 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { DrawerToggleButton } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
+import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { BottomSheetProvider } from "./components/BottomSheetProvider";
-import { ThemeProvider, useTheme } from "./theme/ThemeContext";
-import { AuthProvider, useAuth } from "./utils/authContext";
-import { storage } from "./utils/storage";
+import { ThemeProvider, useTheme, AuthProvider, useAuth } from "../contexts";
+import { storage } from "../lib/storage";
 
-// Custom drawer content component
+// Loading screen component
+function LoadingScreen() {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
+      <Text style={[styles.loadingText, { color: colors.text }]}>Loading...</Text>
+    </View>
+  );
+}
+
+// Custom drawer content component for authenticated users
 function CustomDrawerContent(props: any) {
   const { colors } = useTheme();
-  const { logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   // Determine current route name to highlight active drawer item
   const currentRouteName = props.state.routes[props.state.index]?.name || "";
+
+  const handleSignOut = async () => {
+    await signOut();
+    // Navigation will be handled automatically by auth state change
+  };
 
   return (
     <View
@@ -40,9 +57,11 @@ function CustomDrawerContent(props: any) {
             style={styles.avatar}
             resizeMode="cover"
           />
-          <Text style={[styles.userName, { color: colors.text }]}>John Doe</Text>
+          <Text style={[styles.userName, { color: colors.text }]}>
+            {user?.name || 'User'}
+          </Text>
           <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
-            john.doe@example.com
+            {user?.email || 'user@example.com'}
           </Text>
         </View>
       </View>
@@ -64,7 +83,7 @@ function CustomDrawerContent(props: any) {
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
               name="tachometer-alt"
-              size={20}
+              size={18}
               color={currentRouteName === "tabs" || currentRouteName === "index" ? colors.primary : colors.icon}
             />
           </View>
@@ -104,7 +123,7 @@ function CustomDrawerContent(props: any) {
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
               name="users"
-              size={20}
+              size={18}
               color={currentRouteName === "groups" ? colors.primary : colors.icon}
             />
           </View>
@@ -144,7 +163,7 @@ function CustomDrawerContent(props: any) {
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
               name="history"
-              size={20}
+              size={18}
               color={currentRouteName === "activity" ? colors.primary : colors.icon}
             />
           </View>
@@ -184,7 +203,7 @@ function CustomDrawerContent(props: any) {
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
               name="cog"
-              size={20}
+              size={18}
               color={currentRouteName === "settings" ? colors.primary : colors.icon}
             />
           </View>
@@ -208,62 +227,34 @@ function CustomDrawerContent(props: any) {
             />
           )}
         </TouchableOpacity>
-        
-        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-        
-        <TouchableOpacity
-          style={[
-            styles.drawerItem,
-          ]}
-        >
-          <View style={styles.drawerIconContainer}>
-            <FontAwesome5
-              name="question-circle"
-              size={18}
-              color={colors.icon}
-            />
-          </View>
-          <Text
-            style={[
-              styles.drawerItemText,
-              {
-                color: colors.text,
-              },
-            ]}
-          >
-            Help & Feedback
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
 
-      {/* Sign Out Button */}
-      <TouchableOpacity 
-        style={[
-          styles.signOutButton,
-          { backgroundColor: colors.drawerActiveItemBackground }
-        ]}
-        onPress={() => {
-          props.navigation.closeDrawer();
-          setTimeout(() => {
-            logout();
-          }, 300);
-        }}
-      >
-        <FontAwesome5
-          name="sign-out-alt"
-          size={18}
-          color={colors.error}
-          style={styles.signOutIcon}
-        />
-        <Text style={[styles.signOutText, { color: colors.error }]}>
-          Sign Out
-        </Text>
-      </TouchableOpacity>
+      {/* Sign Out Button at Bottom */}
+      <View style={styles.bottomSection}>
+        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+        <TouchableOpacity
+          style={[
+            styles.signOutButton,
+            { backgroundColor: colors.error + '15' }
+          ]}
+          onPress={handleSignOut}
+        >
+          <FontAwesome5
+            name="sign-out-alt"
+            size={16}
+            color={colors.error}
+            style={styles.signOutIcon}
+          />
+          <Text style={[styles.signOutText, { color: colors.error }]}>
+            Sign Out
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
-// Custom Drawer Toggle Button with circular background
+// Custom drawer toggle component
 function CustomDrawerToggle(props: any) {
   const { colors } = useTheme();
 
@@ -271,34 +262,34 @@ function CustomDrawerToggle(props: any) {
     <View
       style={[
         styles.toggleButtonContainer,
-        { backgroundColor: colors.headerBackground },
+        { backgroundColor: colors.surface },
       ]}
     >
-      <DrawerToggleButton {...props} tintColor={colors.text} />
+      <DrawerToggleButton {...props} tintColor={colors.primary} />
     </View>
   );
 }
 
-// Wrap the root component with ThemeProvider
-function RootLayoutWithTheme({ initialRoute }: { initialRoute: string }) {
+// Custom back button component
+function CustomBackButton() {
   const { colors } = useTheme();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  
-  // Set initial route when component mounts
-  useEffect(() => {
-    // Don't redirect if auth is still loading
-    if (authLoading) return;
-    
-    if (initialRoute === '/onboarding') {
-      router.replace('/onboarding' as any);
-    } else if (!isAuthenticated) {
-      // Only redirect to login if not authenticated
-      router.replace('/login' as any);
-    } else if (isAuthenticated && initialRoute === '/') {
-      // If authenticated and initial route is root, go to tabs
-      router.replace('/tabs' as any);
-    }
-  }, [initialRoute, isAuthenticated, authLoading]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.backButtonContainer,
+        { backgroundColor: colors.surface },
+      ]}
+      onPress={() => router.back()}
+    >
+      <FontAwesome5 name="arrow-left" size={18} color={colors.primary} />
+    </TouchableOpacity>
+  );
+}
+
+// Authenticated app layout with drawer navigation
+function AuthenticatedLayout() {
+  const { colors } = useTheme();
 
   return (
     <Drawer
@@ -327,6 +318,8 @@ function RootLayoutWithTheme({ initialRoute }: { initialRoute: string }) {
         },
         swipeEdgeWidth: 50,
         headerLeft: (props) => <CustomDrawerToggle {...props} />,
+        // Prevent gestures from opening drawer when not authenticated
+        gestureEnabled: true,
       })}
     >
       <Drawer.Screen
@@ -371,48 +364,69 @@ function RootLayoutWithTheme({ initialRoute }: { initialRoute: string }) {
         }}
       />
       <Drawer.Screen
-        name="onboarding"
+        name="about"
         options={{
-          drawerLabel: "Onboarding",
-          drawerItemStyle: { display: 'none' },  // Hide from drawer
-          headerShown: false,  // Hide header on onboarding screen
+          drawerLabel: "About",
+          headerLeft: () => <CustomBackButton />,
+          drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />
-      
       <Drawer.Screen
-        name="login"
+        name="edit-profile"
         options={{
-          drawerLabel: "Login",
-          drawerItemStyle: { display: 'none' },  // Hide from drawer
-          headerShown: false,  // Hide header on login screen
+          drawerLabel: "Edit Profile",
+          headerLeft: () => <CustomBackButton />,
+          drawerItemStyle: { display: 'none' }, // Hide from drawer menu
+        }}
+      />
+      <Drawer.Screen
+        name="help-faq"
+        options={{
+          drawerLabel: "Help & FAQ",
+          headerLeft: () => <CustomBackButton />,
+          drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />
     </Drawer>
   );
 }
 
-// Export the root layout wrapped with ThemeProvider
-export default function RootLayout() {
+// Unauthenticated layout with stack navigation for auth and onboarding
+function UnauthenticatedLayout() {
+  const { colors } = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        gestureEnabled: false,
+        animation: 'slide_from_right',
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <Stack.Screen name="auth" />
+      <Stack.Screen name="onboarding" />
+    </Stack>
+  );
+}
+
+// Main navigation component that handles authentication state
+function RootNavigator() {
+  const { user, isLoading: authLoading } = useAuth();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
-  // Check onboarding status from storage when component mounts
+  // Check onboarding status when app loads
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       try {
         const onboardingStatus = await storage.getOnboardingStatus();
         setIsOnboardingComplete(onboardingStatus);
-        
-        if (!onboardingStatus) {
-          setInitialRoute('/onboarding');
-        } else {
-          setInitialRoute('/');
-        }
       } catch (error) {
         console.error('Error checking onboarding status:', error);
         setIsOnboardingComplete(false);
-        setInitialRoute('/onboarding');
       } finally {
         setIsLoading(false);
       }
@@ -421,16 +435,42 @@ export default function RootLayout() {
     checkOnboardingStatus();
   }, []);
 
-  // Show a loading state while checking onboarding status
-  if (isLoading || !initialRoute) {
-    return null;
+  // Handle navigation based on auth and onboarding state
+  useEffect(() => {
+    if (isLoading || authLoading) return;
+
+    if (!isOnboardingComplete) {
+      // User hasn't completed onboarding
+      router.replace('/onboarding' as any);
+    } else if (!user?.isAuthenticated) {
+      // User completed onboarding but not authenticated
+      router.replace('/auth/sign-in' as any);
+    } else {
+      // User is authenticated, go to main app
+      router.replace('/tabs' as any);
+    }
+  }, [user, isOnboardingComplete, isLoading, authLoading]);
+
+  // Show loading screen while determining initial route
+  if (isLoading || authLoading) {
+    return <LoadingScreen />;
   }
 
+  // Show appropriate layout based on authentication state
+  if (user?.isAuthenticated) {
+    return <AuthenticatedLayout />;
+  } else {
+    return <UnauthenticatedLayout />;
+  }
+}
+
+// Root layout component with providers
+export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <BottomSheetProvider>
-          <RootLayoutWithTheme initialRoute={initialRoute} />
+          <RootNavigator />
         </BottomSheetProvider>
       </AuthProvider>
     </ThemeProvider>
@@ -438,7 +478,25 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '500',
+  },
   toggleButtonContainer: {
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
+  },
+  backButtonContainer: {
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -503,9 +561,9 @@ const styles = StyleSheet.create({
   signOutButton: {
     flexDirection: "row",
     alignItems: "center",
-    margin: 16,
     padding: 16,
     borderRadius: 10,
+    marginBottom: 16,
   },
   signOutText: {
     fontSize: 16,
@@ -526,5 +584,9 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderRadius: 16,
+  },
+  bottomSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
 });

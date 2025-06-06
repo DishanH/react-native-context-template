@@ -1,7 +1,7 @@
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { createContext, ReactNode, useCallback, useContext, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useTheme } from '../theme/ThemeContext';
+import { useTheme } from '../../contexts';
 
 // Define the context type
 interface BottomSheetContextType {

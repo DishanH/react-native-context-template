@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import React from 'react';
-import { ThemeProvider } from '../theme/ThemeContext';
+import { ThemeProvider } from '../../contexts';
 
 export default function OnboardingLayout() {
   return (

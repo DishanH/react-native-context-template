@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
-import { storage } from '../utils/storage';
-import colors from './colors';
-import { ThemeContextType, ThemeType } from './types';
+import { storage } from '../lib/storage';
+import { colors, type ThemeContextType, type ThemeType } from '../theme';
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'light',

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { useBottomSheet } from './components/BottomSheetProvider';
 import SampleBottomSheetContent from './components/SampleBottomSheetContent';
-import { useTheme } from './theme/ThemeContext';
+import { useTheme } from '../contexts';
 
 export default function ActivityScreen() {
   const { colors } = useTheme();

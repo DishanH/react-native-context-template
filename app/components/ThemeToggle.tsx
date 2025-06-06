@@ -1,7 +1,7 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTheme } from '../theme/ThemeContext';
+import { useTheme } from '../../contexts';
 
 // Define palette colors for the theme previews
 const LIGHT_COLORS = {

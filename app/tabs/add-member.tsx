@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '../theme/ThemeContext';
+import { useTheme } from '../../contexts';
 
 export default function ConnectTab() {
   const { colors } = useTheme();
