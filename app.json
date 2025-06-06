@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "simpleai-app",
+    "slug": "simpleai-app",
+    "version": "1.0.0",
+    "description": "A production-ready React Native template with authentication, theming, navigation, and persistent storage",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "reactnativetemplate",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.template.reactnative"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.template.reactnative"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
