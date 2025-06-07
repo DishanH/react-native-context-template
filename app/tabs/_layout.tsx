@@ -1,22 +1,26 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { DrawerToggleButton } from "@react-navigation/drawer";
 import { Tabs } from "expo-router";
-import React from "react";
+import * as React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import ScrollContextProvider from "../components/ScrollContextProvider";
 import TabBar from "../components/TabBar";
 import { useTheme } from "../../contexts";
 
 // Custom Drawer Toggle Button with circular background
-function CustomDrawerToggle(props: any) {
+function CustomDrawerToggle(
+  props: React.ComponentProps<typeof DrawerToggleButton>
+) {
   const { colors } = useTheme();
-  
+
   return (
-    <View style={[styles.toggleButtonContainer, { backgroundColor: colors.surface }]}>
-      <DrawerToggleButton 
-        {...props}
-        tintColor={colors.primary}
-      />
+    <View
+      style={[
+        styles.toggleButtonContainer,
+        { backgroundColor: colors.surface },
+      ]}
+    >
+      <DrawerToggleButton {...props} tintColor={colors.primary} />
     </View>
   );
 }
@@ -28,14 +32,23 @@ export default function TabLayout() {
     <ScrollContextProvider>
       <View style={styles.container}>
         <Tabs
-          tabBar={(props) => <TabBar {...props} />}
-          screenOptions={({ route }) => ({
+          tabBar={(props: any) => <TabBar {...props} />}
+          screenOptions={({ route }: { route: any }) => ({
             headerShown: true,
-            animation: 'fade',
-            headerTitle: route.name !== 'index' ? route.name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : "Dashboard",
-            headerTitleAlign: 'center',
+            animation: "fade",
+            headerTitle:
+              route.name !== "index"
+                ? route.name
+                    .split("-")
+                    .map(
+                      (word: string) =>
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    )
+                    .join(" ")
+                : "Dashboard",
+            headerTitleAlign: "center",
             headerTitleStyle: {
-              fontWeight: '600',
+              fontWeight: "600",
               fontSize: 18,
               color: colors.text,
             },
@@ -44,21 +57,22 @@ export default function TabLayout() {
               elevation: 0, // Remove shadow on Android
               shadowOpacity: 0, // Remove shadow on iOS
               borderBottomWidth: 0,
-              height: Platform.OS === 'ios' ? 80 : 60,
+              height: Platform.OS === "ios" ? 90 : 70,
+              // paddingBottom: 10,
             },
-            headerLeft: (props) => <CustomDrawerToggle {...props} />,
+            headerLeft: (props: any) => <CustomDrawerToggle {...props} />,
             tabBarStyle: {
               backgroundColor: colors.surface,
               borderTopColor: colors.border,
-              height: 60,
-              paddingBottom: 10,
+              height: Platform.OS === "ios" ? 85 : 65,
+              paddingBottom: Platform.OS === "ios" ? 25 : 10,
               paddingTop: 10,
             },
             tabBarActiveTintColor: colors.primary,
             tabBarInactiveTintColor: colors.icon,
             tabBarLabelStyle: {
               fontSize: 12,
-              fontWeight: '500',
+              fontWeight: "500",
             },
           })}
         >
@@ -67,16 +81,25 @@ export default function TabLayout() {
             options={{
               title: "Dashboard",
               tabBarIcon: ({ color, size }) => (
-                <FontAwesome5 name="tachometer-alt" size={size} color={color} />
+                <FontAwesome5
+                  name="tachometer-alt"
+                  size={size || 20}
+                  color={color}
+                />
               ),
             }}
           />
           <Tabs.Screen
-            name="add-expense"
+            name="add-member"
             options={{
               title: "Create",
-              tabBarIcon: ({ color }) => (
-                <FontAwesome5 name="plus" size={22} color={color} solid />
+              tabBarIcon: ({ color, size }) => (
+                <FontAwesome5
+                  name="users"
+                  size={size || 20}
+                  color={color}
+                  solid
+                />
               ),
             }}
           />
@@ -84,17 +107,22 @@ export default function TabLayout() {
             name="settle"
             options={{
               title: "Manage",
-              tabBarIcon: ({ color }) => (
-                <FontAwesome5 name="cogs" size={22} color={color} solid />
+              tabBarIcon: ({ color, size }) => (
+                <FontAwesome5
+                  name="cogs"
+                  size={size || 20}
+                  color={color}
+                  solid
+                />
               ),
             }}
           />
           <Tabs.Screen
-            name="add-member"
+            name="add-expense"
             options={{
               title: "Connect",
-              tabBarIcon: ({ color }) => (
-                <FontAwesome5 name="link" size={22} color={color} solid />
+              tabBarIcon: ({ color, size }) => (
+                <FontAwesome5 name="plus" size={size || 20} color={color} />
               ),
             }}
           />
@@ -112,9 +140,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 8,
   },
 });
-

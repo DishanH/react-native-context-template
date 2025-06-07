@@ -1,4 +1,5 @@
 import { BlurView } from "expo-blur";
+import * as React from "react";
 import { createContext, useCallback, useContext, useEffect } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
@@ -23,7 +24,7 @@ const VISIBILITY_CONFIG = {
 
 // Tab layout constants
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TAB_BAR_WIDTH = SCREEN_WIDTH - 40; // 20px padding on each side
+const TAB_BAR_WIDTH = SCREEN_WIDTH - 20; // 10px padding on each side
 const TAB_COUNT = 4;
 export const TAB_WIDTH = TAB_BAR_WIDTH / TAB_COUNT;
 
@@ -72,10 +73,11 @@ export default function TabBar({ state, descriptors, navigation }: TabBarProps) 
   
   // Update highlighter position when active tab changes
   useEffect(() => {
-    if (state.index !== undefined) {
-      highlighterPosition.value = withSpring(state.index * TAB_WIDTH, SPRING_CONFIG);
+    if (state.index !== undefined && state.routes.length > 0) {
+      const tabWidth = TAB_BAR_WIDTH / state.routes.length;
+      highlighterPosition.value = withSpring(state.index * tabWidth, SPRING_CONFIG);
     }
-  }, [state.index, highlighterPosition]);
+  }, [state.index, highlighterPosition, state.routes.length]);
   
   // Handle tab bar visibility during scrolling
   useEffect(() => {
@@ -125,22 +127,22 @@ export default function TabBar({ state, descriptors, navigation }: TabBarProps) 
       ]}
     >
       <Animated.View style={[styles.tabBar, animatedTabBarStyle]}>
-        <BlurView 
-          tint={Platform.OS === 'ios' ? "light" : "dark"}
-          intensity={Platform.OS === 'ios' ? 80 : 100}
-          style={StyleSheet.absoluteFill}
-        >
-          <View style={[
-            StyleSheet.absoluteFill, 
-            { backgroundColor: colors.surface + 'F2' }  // Adding transparency
-          ]} />
-        </BlurView>
+        <View style={[
+          StyleSheet.absoluteFill, 
+          { 
+            backgroundColor: colors.surface,
+            opacity: 0.95
+          }
+        ]} />
         
         {/* Tab Highlighter */}
         <Animated.View 
           style={[
             styles.tabHighlighter,
-            { backgroundColor: colors.primary + '30' },  // Increasing opacity from 20 to 30
+            { 
+              backgroundColor: colors.primary + '30',
+              width: state.routes.length > 0 ? (TAB_BAR_WIDTH / state.routes.length) - 20 : TAB_WIDTH - 20
+            },
             animatedHighlighterStyle
           ]} 
         />
@@ -153,7 +155,7 @@ export default function TabBar({ state, descriptors, navigation }: TabBarProps) 
 
             return (
               <TabBarButton
-                key={route.key}
+                key={`${route.key}-${index}`}
                 icon={options.tabBarIcon}
                 isFocused={isFocused}
                 colors={colors}
@@ -170,8 +172,8 @@ export default function TabBar({ state, descriptors, navigation }: TabBarProps) 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    left: 10,
+    right: 10,
     height: 60,
     zIndex: 100,
   },
@@ -179,7 +181,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     borderRadius: 35,
-    overflow: 'hidden',
+    overflow: 'visible',
     ...(Platform.OS === 'ios' ? {
       boxShadow: '0px 6px 8px rgba(0, 0, 0, 0.25)'
     } : {
@@ -191,13 +193,13 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
     paddingHorizontal: 0,
+    flex: 1,
   },
   tabHighlighter: {
     position: 'absolute',
     top: '50%',
     marginTop: -22,
-    left: TAB_WIDTH/2 - 38,
-    width: TAB_WIDTH - 20,
+    left: 10,
     height: 44,
     borderRadius: 24,
   },

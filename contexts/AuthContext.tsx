@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as React from "react";
+import { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
 
 /**
@@ -214,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /**
    * Sign out the current user
-   * Clears all user data and navigates to login screen
+   * Clears all user data and navigates to sign-in screen
    */
   const signOut = async (): Promise<void> => {
     setIsLoading(true);
@@ -223,8 +224,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clear user state
       setUser(null);
       
-      // Navigate to login screen
-      router.replace('/login' as any);
+      // Navigate to auth screen (which redirects to sign-in)
+      router.replace('/auth' as any);
       
     } catch (error) {
       console.error('Sign out error:', error);

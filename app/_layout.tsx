@@ -3,7 +3,8 @@ import { DrawerToggleButton } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { Stack } from "expo-router";
-import React, { useEffect, useState } from "react";
+import * as React from "react";
+import { useEffect, useState } from "react";
 import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { BottomSheetProvider } from "./components/BottomSheetProvider";
 import { ThemeProvider, useTheme, AuthProvider, useAuth } from "../contexts";
@@ -308,7 +309,8 @@ function AuthenticatedLayout() {
           elevation: 0, // Remove shadow on Android
           shadowOpacity: 0, // Remove shadow on iOS
           borderBottomWidth: 0,
-          height: Platform.OS === 'ios' ? 80 : 60,
+          height: Platform.OS === 'ios' ? 90 : 70,
+          paddingBottom: 10,
         },
         headerShadowVisible: false,
         drawerType: "slide",
@@ -444,7 +446,7 @@ function RootNavigator() {
       router.replace('/onboarding' as any);
     } else if (!user?.isAuthenticated) {
       // User completed onboarding but not authenticated
-      router.replace('/auth/sign-in' as any);
+      router.replace('/auth' as any);
     } else {
       // User is authenticated, go to main app
       router.replace('/tabs' as any);
@@ -506,7 +508,7 @@ const styles = StyleSheet.create({
   },
   drawerContainer: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
   },
   userSection: {
     alignItems: "center",
@@ -580,7 +582,7 @@ const styles = StyleSheet.create({
   },
   profileBox: {
     margin: 16,
-    marginTop: 20,
+    marginTop: Platform.OS === 'ios' ? 10 : 20,
     padding: 20,
     borderWidth: 1,
     borderRadius: 16,
