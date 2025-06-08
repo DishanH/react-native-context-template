@@ -221,11 +221,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Clear user state
+      // Clear user state first
       setUser(null);
       
-      // Navigate to auth screen (which redirects to sign-in)
-      router.replace('/auth' as any);
+      // Let the useEffect in RootNavigator handle the navigation
+      // based on the updated authentication state
       
     } catch (error) {
       console.error('Sign out error:', error);
