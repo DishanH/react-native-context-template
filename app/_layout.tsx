@@ -7,7 +7,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { BottomSheetProvider } from "./components/BottomSheetProvider";
-import { ThemeProvider, useTheme, AuthProvider, useAuth } from "../contexts";
+import { ThemeProvider, useTheme, AuthProvider, useAuth, SubscriptionProvider } from "../contexts";
 import { storage } from "../lib/storage";
 
 // Loading screen component
@@ -194,6 +194,46 @@ function CustomDrawerContent(props: any) {
             styles.drawerItem,
             {
               backgroundColor:
+                currentRouteName === "subscription"
+                  ? colors.drawerActiveItemBackground
+                  : "transparent",
+            },
+          ]}
+          onPress={() => props.navigation.navigate("subscription")}
+        >
+          <View style={styles.drawerIconContainer}>
+            <FontAwesome5
+              name="crown"
+              size={18}
+              color={currentRouteName === "subscription" ? colors.primary : colors.icon}
+            />
+          </View>
+          <Text
+            style={[
+              styles.drawerItemText,
+              {
+                color: currentRouteName === "subscription" ? colors.primary : colors.text,
+                fontWeight: currentRouteName === "subscription" ? "600" : "500",
+              },
+            ]}
+          >
+            Subscription
+          </Text>
+          {currentRouteName === "subscription" && (
+            <View
+              style={[
+                styles.activeIndicator,
+                { backgroundColor: colors.primary },
+              ]}
+            />
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.drawerItem,
+            {
+              backgroundColor:
                 currentRouteName === "settings"
                   ? colors.drawerActiveItemBackground
                   : "transparent",
@@ -309,8 +349,7 @@ function AuthenticatedLayout() {
           elevation: 0, // Remove shadow on Android
           shadowOpacity: 0, // Remove shadow on iOS
           borderBottomWidth: 0,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          paddingBottom: 10,
+          height: Platform.OS === 'ios' ? 115 : 70,
         },
         headerShadowVisible: false,
         drawerType: "slide",
@@ -357,6 +396,15 @@ function AuthenticatedLayout() {
         }}
       />
       <Drawer.Screen
+        name="subscription"
+        options={{
+          drawerLabel: "Subscription",
+          drawerIcon: ({ color }) => (
+            <FontAwesome5 name="crown" size={20} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="settings"
         options={{
           drawerLabel: "Settings",
@@ -385,6 +433,22 @@ function AuthenticatedLayout() {
         name="help-faq"
         options={{
           drawerLabel: "Help & FAQ",
+          headerLeft: () => <CustomBackButton />,
+          drawerItemStyle: { display: 'none' }, // Hide from drawer menu
+        }}
+      />
+      <Drawer.Screen
+        name="privacy-policy"
+        options={{
+          drawerLabel: "Privacy Policy",
+          headerLeft: () => <CustomBackButton />,
+          drawerItemStyle: { display: 'none' }, // Hide from drawer menu
+        }}
+      />
+      <Drawer.Screen
+        name="terms-of-service"
+        options={{
+          drawerLabel: "Terms of Service",
           headerLeft: () => <CustomBackButton />,
           drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
@@ -471,9 +535,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BottomSheetProvider>
-          <RootNavigator />
-        </BottomSheetProvider>
+        <SubscriptionProvider>
+          <BottomSheetProvider>
+            <RootNavigator />
+          </BottomSheetProvider>
+        </SubscriptionProvider>
       </AuthProvider>
     </ThemeProvider>
   );

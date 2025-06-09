@@ -231,10 +231,10 @@ const styles = StyleSheet.create({
   logoutCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    minHeight: 64,
+    minHeight: 56,
     ...(Platform.OS === 'ios' ? {
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },

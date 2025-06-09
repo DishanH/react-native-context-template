@@ -57,7 +57,7 @@ export default function TabLayout() {
               elevation: 0, // Remove shadow on Android
               shadowOpacity: 0, // Remove shadow on iOS
               borderBottomWidth: 0,
-              height: Platform.OS === "ios" ? 90 : 70,
+              height: Platform.OS === "ios" ? 115 : 70,
               // paddingBottom: 10,
             },
             headerLeft: (props: any) => <CustomDrawerToggle {...props} />,
