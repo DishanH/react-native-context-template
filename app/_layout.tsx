@@ -281,7 +281,7 @@ function CustomBackButton() {
         styles.backButtonContainer,
         { backgroundColor: colors.surface },
       ]}
-      onPress={() => router.back()}
+      onPress={() => router.push('/settings')}
     >
       <FontAwesome5 name="arrow-left" size={18} color={colors.primary} />
     </TouchableOpacity>

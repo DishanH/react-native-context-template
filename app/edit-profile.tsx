@@ -36,7 +36,7 @@ export default function EditProfileScreen() {
     setTimeout(() => {
       setIsLoading(false);
       Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
+        { text: 'OK', onPress: () => router.push('/settings') }
       ]);
     }, 1500);
   };
@@ -189,7 +189,7 @@ export default function EditProfileScreen() {
             style={[
               styles.saveButton, 
               { 
-                backgroundColor: isLoading ? colors.primary + '70' : colors.primary,
+                backgroundColor: isLoading ? colors.success + '70' : colors.success,
                 opacity: isLoading ? 0.8 : 1
               }
             ]}

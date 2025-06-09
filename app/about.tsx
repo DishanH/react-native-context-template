@@ -137,7 +137,7 @@ export default function AboutScreen() {
               Have questions or feedback? We&apos;d love to hear from you!
             </Text>
             <TouchableOpacity 
-              style={[styles.contactButton, { backgroundColor: colors.primary }]}
+              style={[styles.contactButton, { backgroundColor: colors.info }]}
               onPress={() => handleLinkPress('mailto:support@simpleai.com')}
             >
               <Text style={styles.contactButtonText}>support@simpleai.com</Text>
