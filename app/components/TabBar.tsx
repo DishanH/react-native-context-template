@@ -131,7 +131,8 @@ export default function TabBar({ state, descriptors, navigation }: TabBarProps) 
           StyleSheet.absoluteFill, 
           { 
             backgroundColor: colors.surface,
-            opacity: 0.95
+            opacity: 0.95,
+            borderRadius: 35,
           }
         ]} />
         
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     borderRadius: 35,
-    overflow: 'visible',
+    width: '100%',
     ...(Platform.OS === 'ios' ? {
       boxShadow: '0px 6px 8px rgba(0, 0, 0, 0.25)'
     } : {
