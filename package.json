@@ -1,9 +1,11 @@
 {
-  "name": "simpleai-app",
+  "name": "react-native-template-with-context",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "description": "A production-ready React Native template with authentication, theming, navigation, and persistent storage using React Context",
   "scripts": {
     "start": "expo start",
+    "setup-template": "node ./scripts/setup-template.js",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
@@ -62,7 +64,21 @@
     "authentication",
     "navigation",
     "typescript",
-    "theme"
+    "theme",
+    "context",
+    "boilerplate",
+    "starter",
+    "onboarding",
+    "secure-storage"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "author": "Your Name",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/react-native-template-with-context.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/react-native-template-with-context/issues"
+  },
+  "homepage": "https://github.com/yourusername/react-native-template-with-context#readme"
 }

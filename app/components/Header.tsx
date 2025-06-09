@@ -45,7 +45,7 @@ export default function Header({
 const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: 50,
-    paddingBottom: 10,
+    paddingBottom: 50,
     backgroundColor: "white",
     ...(Platform.OS === 'ios' ? {
       boxShadow: '0px 2px 2px rgba(0, 0, 0, 0.1)'

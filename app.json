@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "simpleai-app",
-    "slug": "simpleai-app",
+    "name": "React Native Template",
+    "slug": "react-native-template-with-context",
     "version": "1.0.0",
-    "description": "A production-ready React Native template with authentication, theming, navigation, and persistent storage",
+    "description": "A production-ready React Native template with authentication, theming, navigation, and persistent storage using React Context",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "reactnativetemplate",
