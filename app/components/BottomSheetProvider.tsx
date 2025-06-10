@@ -97,4 +97,7 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({ childre
       </GestureHandlerRootView>
     </BottomSheetContext.Provider>
   );
-}; 
+};
+
+// Default export for the provider
+export default BottomSheetProvider; 
