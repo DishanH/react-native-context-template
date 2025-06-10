@@ -14,6 +14,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import Button from './components/Button';
 import { useTheme, useAuth } from '../contexts';
 import { feedback } from '../lib/feedback';
 
@@ -186,25 +187,14 @@ export default function EditProfileScreen() {
           </View>
 
           {/* Save Button */}
-          <TouchableOpacity 
+          <Button
+            title="Save Changes"
+            variant="primary"
             onPress={handleSave}
-            style={[
-              styles.saveButton, 
-              { 
-                backgroundColor: isLoading ? colors.success + '70' : colors.success,
-                opacity: isLoading ? 0.8 : 1
-              }
-            ]}
             disabled={isLoading}
-          >
-            {isLoading ? (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.saveButtonText}>Saving...</Text>
-              </View>
-            ) : (
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
+            loading={isLoading}
+            style={styles.saveButton}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

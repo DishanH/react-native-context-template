@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import Button from './components/Button';
 import { useTheme } from '../contexts';
 import { feedback } from '../lib/feedback';
 
@@ -102,37 +103,37 @@ export default function AboutScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal & Privacy</Text>
           <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <TouchableOpacity 
-              style={styles.legalItem}
-              onPress={handleNavigateToPrivacy}
-            >
-              <View style={[styles.legalIconContainer, { backgroundColor: colors.info + '20' }]}>
-                <FontAwesome5 name="shield-alt" size={16} color={colors.info} />
-              </View>
-              <View style={styles.legalContent}>
-                <Text style={[styles.legalTitle, { color: colors.text }]}>Privacy Policy</Text>
-                <Text style={[styles.legalSubtext, { color: colors.textSecondary }]}>
-                  How we collect, use, and protect your data
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.legalButtonContainer}>
+              <Button
+                title="Privacy Policy"
+                variant="outline"
+                onPress={() => {
+                  feedback.navigate();
+                  handleNavigateToPrivacy();
+                }}
+                style={styles.legalButton}
+              />
+              <Text style={[styles.legalHint, { color: colors.textSecondary }]}>
+                How we collect, use, and protect your data
+              </Text>
+            </View>
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
-            <TouchableOpacity 
-              style={styles.legalItem}
-              onPress={handleNavigateToTerms}
-            >
-              <View style={[styles.legalIconContainer, { backgroundColor: colors.warning + '20' }]}>
-                <FontAwesome5 name="file-contract" size={16} color={colors.warning} />
-              </View>
-              <View style={styles.legalContent}>
-                <Text style={[styles.legalTitle, { color: colors.text }]}>Terms of Service</Text>
-                <Text style={[styles.legalSubtext, { color: colors.textSecondary }]}>
-                  Terms and conditions for using our app
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.legalButtonContainer}>
+              <Button
+                title="Terms of Service"
+                variant="outline"
+                onPress={() => {
+                  feedback.navigate();
+                  handleNavigateToTerms();
+                }}
+                style={styles.legalButton}
+              />
+              <Text style={[styles.legalHint, { color: colors.textSecondary }]}>
+                Terms and conditions for using our app
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -147,17 +148,15 @@ export default function AboutScreen() {
             <Text style={[styles.contactText, { color: colors.textSecondary }]}>
               Have questions or feedback? We&apos;d love to hear from you!
             </Text>
-            <TouchableOpacity 
-              style={[styles.contactButton, { backgroundColor: colors.info }]}
+            <Button
+              title="support@simpleai.com"
+              variant="primary"
               onPress={() => {
-                feedback.buttonPress();
                 feedback.info('Opening Email', 'Redirecting to your email client...');
                 Linking.openURL('mailto:support@simpleai.com');
               }}
-            >
-              <FontAwesome5 name="envelope" size={14} color="white" />
-              <Text style={styles.contactButtonText}>support@simpleai.com</Text>
-            </TouchableOpacity>
+              style={styles.contactButton}
+            />
           </View>
         </View>
 
@@ -336,30 +335,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
   },
-  legalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  legalButtonContainer: {
     padding: 16,
   },
-  legalIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  legalButton: {
+    marginBottom: 8,
   },
-  legalContent: {
-    flex: 1,
-  },
-  legalTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  legalSubtext: {
+  legalHint: {
     fontSize: 13,
     lineHeight: 18,
+    textAlign: 'center',
   },
   divider: {
     height: 1,
@@ -397,11 +382,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
-  },
-  contactButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   statsGrid: {
     flexDirection: 'row',

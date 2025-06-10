@@ -13,6 +13,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Button from '../components/Button';
 import { useAuth } from '../../contexts';
 import { useTheme } from '../../contexts';
 
@@ -125,21 +126,15 @@ const SignInScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Sign In Button */}
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { backgroundColor: colors.primary }
-              ]}
+            {/* Sign In Button - Using new semantic variant */}
+            <Button
+              title="Sign In"
+              variant="primary"
               onPress={handleSignIn}
               disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
-              )}
-            </TouchableOpacity>
+              loading={isLoading}
+              style={styles.button}
+            />
 
             {/* Forgot Password */}
             <TouchableOpacity style={styles.forgotPassword}>

@@ -52,17 +52,20 @@ function CustomDrawerContent(props: any) {
         style={[
           styles.profileBox,
           {
-            backgroundColor: colors.drawerActiveItemBackground,
-            borderColor: colors.divider,
+            backgroundColor: colors.drawerHeaderBackground,
+            borderColor: colors.primary + '30',
+            borderWidth: 1,
           },
         ]}
       >
         <View style={styles.userSection}>
-          <Image
-            source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
-            style={styles.avatar}
-            resizeMode="cover"
-          />
+          <View style={[styles.avatarContainer, { borderColor: colors.primary + '50' }]}>
+            <Image
+              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+              style={styles.avatar}
+              resizeMode="cover"
+            />
+          </View>
           <Text style={[styles.userName, { color: colors.text }]}>
             {user?.name || 'User'}
           </Text>
@@ -293,7 +296,10 @@ function CustomDrawerContent(props: any) {
         <TouchableOpacity
           style={[
             styles.signOutButton,
-            { backgroundColor: colors.error + '15' }
+            { 
+              backgroundColor: colors.error + '15',
+              borderColor: colors.error + '30',
+            }
           ]}
           onPress={handleSignOut}
         >
@@ -640,11 +646,20 @@ const styles = StyleSheet.create({
   userSection: {
     alignItems: "center",
   },
+  avatarContainer: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginBottom: 16,
   },
   userName: {
     fontSize: 20,
@@ -665,8 +680,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 8,
+    marginHorizontal: 8,
     position: "relative",
   },
   drawerIconContainer: {
@@ -680,19 +696,22 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     position: "absolute",
-    left: 0,
-    top: 12,
-    bottom: 12,
-    width: 4,
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    right: 8,
+    top: "50%",
+    transform: [{ translateY: -8 }],
+    width: 6,
+    height: 16,
+    borderRadius: 3,
   },
   signOutButton: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 16,
+    marginHorizontal: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   signOutText: {
     fontSize: 16,

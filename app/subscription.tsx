@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Button from './components/Button';
 import { useTheme, useSubscription } from '../contexts';
 import type { SubscriptionPlan } from '../contexts';
 import { feedback } from '../lib/feedback';
@@ -230,37 +231,23 @@ const SubscriptionScreen = () => {
                 {!isCurrentPlan && (
                   <View style={styles.actionContainer}>
                     {plan.trialDays && subscription?.plan === 'free' ? (
-                      <TouchableOpacity
-                        style={[styles.actionButton, { backgroundColor: colors.info }]}
-                        onPress={() => {
-                          feedback.buttonPress();
-                          handleStartTrial(plan.id);
-                        }}
+                      <Button
+                        title={`Start ${plan.trialDays}-day Free Trial`}
+                        variant="secondary"
+                        onPress={() => handleStartTrial(plan.id)}
                         disabled={actionLoading === `trial-${plan.id}`}
-                      >
-                        {actionLoading === `trial-${plan.id}` ? (
-                          <ActivityIndicator size="small" color="white" />
-                        ) : (
-                          <Text style={styles.actionButtonText}>Start {plan.trialDays}-day Free Trial</Text>
-                        )}
-                      </TouchableOpacity>
+                        loading={actionLoading === `trial-${plan.id}`}
+                        style={styles.actionButton}
+                      />
                     ) : (
-                      <TouchableOpacity
-                        style={[styles.actionButton, { backgroundColor: plan.price === 0 ? colors.textSecondary : colors.success }]}
-                        onPress={() => {
-                          feedback.buttonPress();
-                          handleUpgrade(plan.id);
-                        }}
+                      <Button
+                        title={plan.price === 0 ? 'Switch to Free' : 'Upgrade Now'}
+                        variant={plan.price === 0 ? 'ghost' : 'primary'}
+                        onPress={() => handleUpgrade(plan.id)}
                         disabled={actionLoading === plan.id}
-                      >
-                        {actionLoading === plan.id ? (
-                          <ActivityIndicator size="small" color="white" />
-                        ) : (
-                          <Text style={styles.actionButtonText}>
-                            {plan.price === 0 ? 'Switch to Free' : 'Upgrade Now'}
-                          </Text>
-                        )}
-                      </TouchableOpacity>
+                        loading={actionLoading === plan.id}
+                        style={styles.actionButton}
+                      />
                     )}
                   </View>
                 )}
@@ -300,48 +287,36 @@ const SubscriptionScreen = () => {
 
                   <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-                  <TouchableOpacity
-                    style={styles.managementOption}
-                    onPress={() => {
-                      feedback.buttonPress();
-                      handleCancel();
-                    }}
-                    disabled={actionLoading === 'cancel'}
-                  >
-                    <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
-                      <FontAwesome5 name="times" size={14} color={colors.error} />
-                    </View>
-                    <View style={styles.optionContent}>
-                      <Text style={[styles.optionText, { color: colors.error }]}>Cancel Subscription</Text>
-                      <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                        You&apos;ll keep access until your current period ends
-                      </Text>
-                    </View>
-                    {actionLoading === 'cancel' && <ActivityIndicator size="small" color={colors.error} />}
-                  </TouchableOpacity>
+                  <View style={styles.managementButtonContainer}>
+                    <Button
+                      title="Cancel Subscription"
+                      variant="destructive"
+                      onPress={handleCancel}
+                      disabled={actionLoading === 'cancel'}
+                      loading={actionLoading === 'cancel'}
+                      style={styles.managementButton}
+                    />
+                                         <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
+                       You&apos;ll keep access until your current period ends
+                     </Text>
+                  </View>
                 </>
               )}
 
               {subscription.status === 'canceled' && (
-                <TouchableOpacity
-                  style={styles.managementOption}
-                  onPress={() => {
-                    feedback.buttonPress();
-                    handleRenew();
-                  }}
-                  disabled={actionLoading === 'renew'}
-                >
-                  <View style={[styles.iconContainer, { backgroundColor: colors.success + '20' }]}>
-                    <FontAwesome5 name="redo" size={14} color={colors.success} />
-                  </View>
-                  <View style={styles.optionContent}>
-                    <Text style={[styles.optionText, { color: colors.text }]}>Renew Subscription</Text>
-                    <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                      Reactivate your subscription
-                    </Text>
-                  </View>
-                  {actionLoading === 'renew' && <ActivityIndicator size="small" color={colors.success} />}
-                </TouchableOpacity>
+                <View style={styles.managementButtonContainer}>
+                  <Button
+                    title="Renew Subscription"
+                    variant="primary"
+                    onPress={handleRenew}
+                    disabled={actionLoading === 'renew'}
+                    loading={actionLoading === 'renew'}
+                    style={styles.managementButton}
+                  />
+                  <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
+                    Reactivate your subscription
+                  </Text>
+                </View>
               )}
             </View>
           </View>
@@ -591,6 +566,15 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: 0,
+  },
+  managementButtonContainer: {
+    paddingVertical: 16,
+  },
+  managementHint: {
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
+    opacity: 0.8,
   },
 });
 

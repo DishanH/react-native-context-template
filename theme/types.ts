@@ -44,6 +44,19 @@ export interface ThemeColors {
   statusActive: string;       // Active state indicator
   statusInactive: string;     // Inactive state indicator
   
+  // Button variant colors - semantic button styles
+  buttonPrimary: string;           // Primary button background
+  buttonPrimaryText: string;       // Primary button text
+  buttonSecondary: string;         // Secondary button background
+  buttonSecondaryText: string;     // Secondary button text
+  buttonOutline: string;           // Outline button border
+  buttonOutlineText: string;       // Outline button text
+  buttonDestructive: string;       // Destructive button background
+  buttonDestructiveText: string;   // Destructive button text
+  buttonGhost: string;             // Ghost button background (transparent)
+  buttonGhostText: string;         // Ghost button text
+  buttonLink: string;              // Link button text color
+  
   // Navigation drawer specific colors
   drawerBackground: string;           // Drawer main background
   drawerItemBackground: string;       // Individual drawer item background
