@@ -42,29 +42,29 @@ const colors: ThemeConfig = {
 
     // UI component colors - borders and interactive elements
     border: LIGHT_PALETTE.medium,           // Gray borders for inputs
-    divider: LIGHT_PALETTE.medium,          // Gray dividers between sections
+    divider: LIGHT_PALETTE.medium,          // Gray dividers
     icon: LIGHT_PALETTE.darker,             // Dark icons for visibility
     statusActive: BRAND_COLORS.primary,     // Active state in brand color
     statusInactive: LIGHT_PALETTE.medium,   // Inactive state in gray
     
     // Button variant colors - semantic button styles for light theme
-    buttonPrimary: LIGHT_PALETTE.darkest,           // Dark teal primary button
+    buttonPrimary: BRAND_COLORS.primary,            // Brand primary button
     buttonPrimaryText: LIGHT_PALETTE.lightAlt,      // White text on primary
-    buttonSecondary: LIGHT_PALETTE.medium,          // Medium green secondary button
-    buttonSecondaryText: LIGHT_PALETTE.darkest,     // Dark teal text on secondary
+    buttonSecondary: LIGHT_PALETTE.medium,          // Gray secondary button
+    buttonSecondaryText: LIGHT_PALETTE.darkest,     // Dark text on secondary
     buttonOutline: 'transparent',                   // Transparent outline button
-    buttonOutlineText: LIGHT_PALETTE.darkest,       // Dark teal outline text
+    buttonOutlineText: BRAND_COLORS.primary,        // Brand color outline text
     buttonDestructive: STATUS_COLORS.error.light,   // Red destructive button
     buttonDestructiveText: LIGHT_PALETTE.lightAlt,  // White text on destructive
     buttonGhost: 'transparent',                     // Transparent ghost button
-    buttonGhostText: LIGHT_PALETTE.darker,          // Dark teal ghost text
-    buttonLink: LIGHT_PALETTE.darker,               // Dark teal link color
+    buttonGhostText: LIGHT_PALETTE.darker,          // Dark gray ghost text
+    buttonLink: BRAND_COLORS.primary,               // Brand color link
     
     // Navigation drawer colors - cohesive with main theme
     drawerBackground: LIGHT_PALETTE.lightAlt,        // White drawer background
     drawerItemBackground: LIGHT_PALETTE.lightAlt,    // White item backgrounds
-    drawerActiveItemBackground: LIGHT_PALETTE.medium + '30', // Light green with transparency for active item
-    drawerHeaderBackground: LIGHT_PALETTE.darkest + '10',    // Light teal background for profile section
+    drawerActiveItemBackground: LIGHT_PALETTE.light, // Light gray for active item
+    drawerHeaderBackground: LIGHT_PALETTE.light,     // Light gray header
   },
 
   /**
@@ -102,23 +102,23 @@ const colors: ThemeConfig = {
     statusInactive: DARK_PALETTE.medium,    // Medium gray inactive state
     
     // Button variant colors - semantic button styles for dark theme
-    buttonPrimary: DARK_PALETTE.medium,             // Orange primary button
-    buttonPrimaryText: DARK_PALETTE.darkest,        // Black text on orange
-    buttonSecondary: DARK_PALETTE.lightAlt,         // Medium orange secondary button
-    buttonSecondaryText: DARK_PALETTE.darkest,      // Black text on secondary
+    buttonPrimary: DARK_PALETTE.light,              // Light primary button
+    buttonPrimaryText: DARK_PALETTE.darkest,        // Dark text on primary
+    buttonSecondary: DARK_PALETTE.medium,           // Medium gray secondary button
+    buttonSecondaryText: DARK_PALETTE.light,        // Light text on secondary
     buttonOutline: 'transparent',                   // Transparent outline button
-    buttonOutlineText: DARK_PALETTE.light,          // Light orange outline text
+    buttonOutlineText: DARK_PALETTE.light,          // Light outline text
     buttonDestructive: STATUS_COLORS.error.dark,    // Red destructive button
-    buttonDestructiveText: DARK_PALETTE.darkest,    // Black text on destructive
+    buttonDestructiveText: DARK_PALETTE.darkest,    // Dark text on destructive
     buttonGhost: 'transparent',                     // Transparent ghost button
-    buttonGhostText: DARK_PALETTE.lightAlt,         // Medium orange ghost text
-    buttonLink: DARK_PALETTE.light,                 // Light orange link color
+    buttonGhostText: DARK_PALETTE.lightAlt,         // Light gray ghost text
+    buttonLink: DARK_PALETTE.light,                 // Light link color
     
     // Navigation drawer colors - cohesive with dark theme
     drawerBackground: DARK_PALETTE.darker,           // Dark gray drawer background
     drawerItemBackground: DARK_PALETTE.darker,       // Dark gray item backgrounds
-    drawerActiveItemBackground: DARK_PALETTE.medium + '40', // Orange with transparency for active item
-    drawerHeaderBackground: DARK_PALETTE.medium + '20',     // Orange background for profile section
+    drawerActiveItemBackground: DARK_PALETTE.medium, // Medium gray for active item
+    drawerHeaderBackground: DARK_PALETTE.medium,     // Medium gray header
   }
 };
 

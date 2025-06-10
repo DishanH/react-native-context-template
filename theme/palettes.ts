@@ -11,47 +11,49 @@ import type { ColorPalette } from './types';
 // ORIGINAL PALETTES (commented out for testing)
 // ========================================
 
-// export const DARK_PALETTE: ColorPalette = {
-//   darkest: '#06141B',    // Deep dark blue-gray for backgrounds
-//   darker: '#11212D',     // Dark blue-gray for surfaces
-//   medium: '#253745',     // Medium blue-gray for borders/dividers
-//   light: '#CCD0CF',      // Light gray for primary text
-//   lightAlt: '#A8ADAC'    // Alternative light gray for secondary text
-// };
+/**
+ * Dark theme color palette
+ * Used as the base colors for constructing the dark theme
+ */
+export const DARK_PALETTE: ColorPalette = {
+  darkest: '#06141B',    // Deep dark blue-gray for backgrounds
+  darker: '#11212D',     // Dark blue-gray for surfaces
+  medium: '#253745',     // Medium blue-gray for borders/dividers
+  light: '#CCD0CF',      // Light gray for primary text
+  lightAlt: '#A8ADAC'    // Alternative light gray for secondary text
+};
 
-// export const LIGHT_PALETTE: ColorPalette = {
-//   darkest: '#1E2022',    // Very dark gray for primary text
-//   darker: '#52616B',     // Dark gray for secondary text and primary elements
-//   medium: '#C9D6DF',     // Medium gray for borders and dividers
-//   light: '#F0F5F9',      // Light gray for surface variants
-//   lightAlt: '#FFFFFF'    // Pure white for main backgrounds
-// };
+/**
+ * Light theme color palette
+ * Used as the base colors for constructing the light theme
+ */
+export const LIGHT_PALETTE: ColorPalette = {
+  darkest: '#1E2022',    // Very dark gray for primary text
+  darker: '#52616B',     // Dark gray for secondary text and primary elements
+  medium: '#C9D6DF',     // Medium gray for borders and dividers
+  light: '#F0F5F9',      // Light gray for surface variants
+  lightAlt: '#FFFFFF'    // Pure white for main backgrounds
+};
 
 // ========================================
 // TESTING PALETTES - Option 1: Warm Neutral
 // ========================================
 
-/**
- * Dark theme - Black and Orange
- */
-export const DARK_PALETTE: ColorPalette = {
-  darkest: '#000000',    // Pure black background
-  darker: '#1A0A00',     // Very dark orange-black
-  medium: '#FF6B35',     // Vibrant orange for accents
-  light: '#FFB894',      // Light orange for primary text
-  lightAlt: '#FF8A50'    // Medium orange for secondary text
-};
+// export const DARK_PALETTE: ColorPalette = {
+//   darkest: '#021024',    // Deep navy for backgrounds (from image)
+//   darker: '#052659',     // Dark blue for surfaces (from image)
+//   medium: '#5483B3',     // Medium blue for accents and borders (from image)
+//   light: '#7DA0CA',      // Light blue for primary text (from image)
+//   lightAlt: '#C1E8FF'    // Very light blue for highlights (from image)
+// };
 
-/**
- * Light theme - Custom green to dark teal gradient
- */
-export const LIGHT_PALETTE: ColorPalette = {
-  darkest: '#051F20',    // Deep dark teal for text
-  darker: '#0A3E3F',     // Dark teal for secondary text
-  medium: '#7FB069',     // Medium green for borders
-  light: '#DAF1DE',      // Light green background
-  lightAlt: '#FFFFFF'    // Pure white
-};
+// export const LIGHT_PALETTE: ColorPalette = {
+//   darkest: '#051F20',    // Deep dark teal for primary text (from image)
+//   darker: '#0E2E26',     // Dark green for secondary text (from image)
+//   medium: '#235347',     // Medium green for borders and accents (from image)
+//   light: '#BFE5B8',      // Light green for surfaces (from image)
+//   lightAlt: '#DAF1DE'    // Very light green background (from image)
+// };
 
 // ========================================
 // ALTERNATIVE OPTIONS (uncomment to try)
