@@ -1,13 +1,16 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { DrawerToggleButton } from "@react-navigation/drawer";
-import { router } from "expo-router";
+import { router,Stack } from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import Toast from 'react-native-toast-message';
 import { BottomSheetProvider } from "./components/BottomSheetProvider";
 import { ThemeProvider, useTheme, AuthProvider, useAuth, SubscriptionProvider } from "../contexts";
+import { feedback } from "../lib/feedback";
+import { toastConfig } from "../lib/toastConfig";
 import { storage } from "../lib/storage";
 
 // Loading screen component
@@ -31,6 +34,8 @@ function CustomDrawerContent(props: any) {
   const currentRouteName = props.state.routes[props.state.index]?.name || "";
 
   const handleSignOut = async () => {
+    feedback.buttonPress();
+    feedback.info('Signing Out', 'See you soon!');
     await signOut();
     // Navigation will be handled automatically by auth state change
   };
@@ -79,7 +84,10 @@ function CustomDrawerContent(props: any) {
                   : "transparent",
             },
           ]}
-          onPress={() => props.navigation.navigate("tabs")}
+          onPress={() => {
+            feedback.navigate();
+            props.navigation.navigate("tabs");
+          }}
         >
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
@@ -119,7 +127,10 @@ function CustomDrawerContent(props: any) {
                   : "transparent",
             },
           ]}
-          onPress={() => props.navigation.navigate("groups")}
+          onPress={() => {
+            feedback.navigate();
+            props.navigation.navigate("groups");
+          }}
         >
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
@@ -159,7 +170,10 @@ function CustomDrawerContent(props: any) {
                   : "transparent",
             },
           ]}
-          onPress={() => props.navigation.navigate("activity")}
+          onPress={() => {
+            feedback.navigate();
+            props.navigation.navigate("activity");
+          }}
         >
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
@@ -239,7 +253,10 @@ function CustomDrawerContent(props: any) {
                   : "transparent",
             },
           ]}
-          onPress={() => props.navigation.navigate("settings")}
+          onPress={() => {
+            feedback.navigate();
+            props.navigation.navigate("settings");
+          }}
         >
           <View style={styles.drawerIconContainer}>
             <FontAwesome5
@@ -315,13 +332,18 @@ function CustomDrawerToggle(props: any) {
 function CustomBackButton() {
   const { colors } = useTheme();
 
+  const handleBackPress = () => {
+    feedback.back();
+    router.push('/settings');
+  };
+
   return (
     <TouchableOpacity
       style={[
         styles.backButtonContainer,
         { backgroundColor: colors.surface },
       ]}
-      onPress={() => router.push('/settings')}
+      onPress={handleBackPress}
     >
       <FontAwesome5 name="arrow-left" size={18} color={colors.primary} />
     </TouchableOpacity>
@@ -537,11 +559,42 @@ export default function RootLayout() {
       <AuthProvider>
         <SubscriptionProvider>
           <BottomSheetProvider>
+            <StatusBarManager />
             <RootNavigator />
+            <Toast config={toastConfig} />
           </BottomSheetProvider>
         </SubscriptionProvider>
       </AuthProvider>
     </ThemeProvider>
+  );
+}
+
+// Status bar manager component that responds to theme changes
+function StatusBarManager() {
+  const { theme, colors } = useTheme();
+  
+  // Update toast colors when theme changes and on initial load
+  React.useEffect(() => {
+    const { setToastColors } = require("../lib/feedback");
+    if (colors) {
+      setToastColors(colors);
+    }
+  }, [colors]);
+  
+  // Set initial colors immediately
+  React.useLayoutEffect(() => {
+    const { setToastColors } = require("../lib/feedback");
+    if (colors) {
+      setToastColors(colors);
+    }
+  }, []);
+  
+  return (
+    <StatusBar 
+      style={theme === 'dark' ? 'light' : 'dark'}
+      backgroundColor="transparent"
+      translucent={true}
+    />
   );
 }
 

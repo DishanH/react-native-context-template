@@ -4,12 +4,14 @@ import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import ThemeToggle from './components/ThemeToggle';
 import { useTheme, useAuth } from '../contexts';
+import { feedback } from '../lib/feedback';
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
 
   const handleLogout = () => {
+    feedback.buttonPress();
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -17,11 +19,15 @@ export default function SettingsScreen() {
         {
           text: 'Cancel',
           style: 'cancel',
+          onPress: () => feedback.buttonPress(),
         },
         {
           text: 'Sign Out',
           style: 'destructive',
-          onPress: () => signOut(),
+          onPress: () => {
+            feedback.info('Signing Out', 'See you soon!');
+            signOut();
+          },
         },
       ]
     );
@@ -40,7 +46,10 @@ export default function SettingsScreen() {
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TouchableOpacity 
             style={styles.optionItem}
-            onPress={() => router.push('/edit-profile' as any)}
+            onPress={() => {
+              feedback.navigate();
+              router.push('/edit-profile' as any);
+            }}
           >
             <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
               <FontAwesome5 name="user-edit" size={14} color={colors.primary} />
@@ -100,7 +109,10 @@ export default function SettingsScreen() {
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TouchableOpacity 
             style={styles.optionItem}
-            onPress={() => router.push('/help-faq' as any)}
+            onPress={() => {
+              feedback.navigate();
+              router.push('/help-faq' as any);
+            }}
           >
             <View style={[styles.iconContainer, { backgroundColor: colors.info + '20' }]}>
               <FontAwesome5 name="question-circle" size={14} color={colors.info} />
@@ -117,7 +129,10 @@ export default function SettingsScreen() {
           
           <TouchableOpacity 
             style={styles.optionItem}
-            onPress={() => router.push('/about' as any)}
+            onPress={() => {
+              feedback.navigate();
+              router.push('/about' as any);
+            }}
           >
             <View style={[styles.iconContainer, { backgroundColor: colors.success + '20' }]}>
               <FontAwesome5 name="info-circle" size={14} color={colors.success} />

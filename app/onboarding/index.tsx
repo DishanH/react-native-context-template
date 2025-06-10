@@ -1,7 +1,8 @@
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Dimensions, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../../contexts';
 import { storage } from '../../lib/storage';
 
@@ -74,7 +75,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: ONBOARDING_COLORS.background }]}>
-      <StatusBar barStyle="dark-content" backgroundColor={ONBOARDING_COLORS.background} />
+      <StatusBar style="dark" backgroundColor={ONBOARDING_COLORS.background} />
       
       {/* Content area with image and text */}
       <View style={styles.contentWrapper}>

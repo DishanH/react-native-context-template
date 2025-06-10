@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
 import {
+    Linking,
     ScrollView,
     StyleSheet,
     Text,
@@ -9,6 +10,7 @@ import {
     View
 } from 'react-native';
 import { useTheme } from '../contexts';
+import { feedback } from '../lib/feedback';
 
 export default function AboutScreen() {
   const { colors } = useTheme();
@@ -146,8 +148,12 @@ export default function AboutScreen() {
               Have questions or feedback? We&apos;d love to hear from you!
             </Text>
             <TouchableOpacity 
-              style={[styles.contactButton, { backgroundColor: colors.success }]}
-              onPress={() => console.log('Open email client')}
+              style={[styles.contactButton, { backgroundColor: colors.info }]}
+              onPress={() => {
+                feedback.buttonPress();
+                feedback.info('Opening Email', 'Redirecting to your email client...');
+                Linking.openURL('mailto:support@simpleai.com');
+              }}
             >
               <FontAwesome5 name="envelope" size={14} color="white" />
               <Text style={styles.contactButtonText}>support@simpleai.com</Text>

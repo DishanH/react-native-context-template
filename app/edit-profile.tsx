@@ -15,6 +15,7 @@ import {
     View
 } from 'react-native';
 import { useTheme, useAuth } from '../contexts';
+import { feedback } from '../lib/feedback';
 
 export default function EditProfileScreen() {
   const { colors } = useTheme();
@@ -26,18 +27,18 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+      feedback.error('Error', 'Please enter your name');
       return;
     }
 
     setIsLoading(true);
+    feedback.buttonPress(); // Haptic feedback for button press
     
     // Simulate save operation
     setTimeout(() => {
       setIsLoading(false);
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => router.push('/settings') }
-      ]);
+      feedback.success('Success!', 'Profile updated successfully');
+      setTimeout(() => router.push('/settings'), 500); // Small delay for user to see toast
     }, 1500);
   };
 
@@ -69,7 +70,7 @@ export default function EditProfileScreen() {
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        Alert.alert('Permission required', 'Please grant permission to access your photos');
+        feedback.warning('Permission Required', 'Please grant permission to access your photos');
         return;
       }
 
@@ -87,9 +88,10 @@ export default function EditProfileScreen() {
 
       if (!result.canceled && result.assets[0]) {
         setProfileImage(result.assets[0].uri);
+        feedback.success('Photo Updated', 'Profile picture changed successfully');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick image');
+      feedback.error('Error', 'Failed to pick image');
     }
   };
 
