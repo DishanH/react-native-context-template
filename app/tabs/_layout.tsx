@@ -1,27 +1,41 @@
 import { FontAwesome5 } from "@expo/vector-icons";
 import { DrawerToggleButton } from "@react-navigation/drawer";
+import { useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 import * as React from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View, TouchableOpacity } from "react-native";
 import ScrollContextProvider from "../components/ScrollContextProvider";
 import TabBar from "../components/TabBar";
 import { useTheme } from "../../contexts";
+import { feedback } from "../../lib/feedback";
 
 // Custom Drawer Toggle Button with circular background
 function CustomDrawerToggle(
   props: React.ComponentProps<typeof DrawerToggleButton>
 ) {
   const { colors } = useTheme();
+  const navigation = useNavigation();
+
+  // Create a custom onPress handler that includes haptic feedback
+  const handlePress = () => {
+    feedback.navigate(); // Add haptic feedback
+    (navigation as any).openDrawer(); // Open the drawer
+  };
 
   return (
-    <View
+    <TouchableOpacity
       style={[
         styles.toggleButtonContainer,
-        { backgroundColor: colors.surface },
+        { 
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
       ]}
+      onPress={handlePress}
     >
-      <DrawerToggleButton {...props} tintColor={colors.primary} />
-    </View>
+      <FontAwesome5 name="bars" size={18} color={colors.primary} />
+    </TouchableOpacity>
   );
 }
 

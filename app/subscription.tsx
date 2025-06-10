@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useTheme, useSubscription } from '../contexts';
 import type { SubscriptionPlan } from '../contexts';
+import { feedback } from '../lib/feedback';
 
 const SubscriptionScreen = () => {
   const { colors } = useTheme();
@@ -169,87 +170,55 @@ const SubscriptionScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Subscription Plans */}
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Subscription Plans</Text>
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose Your Plan</Text>
           
           {availablePlans.map((plan) => {
             const isCurrentPlan = subscription?.plan === plan.id;
-            const showActions = subscription && !isCurrentPlan;
             
             return (
-              <View
-                key={plan.id}
-                style={[
-                  styles.planCard,
-                  { 
-                    backgroundColor: plan.isPopular ? colors.primary + '10' : colors.background,
-                    borderColor: isCurrentPlan 
-                      ? colors.success 
-                      : plan.isPopular 
-                        ? colors.primary 
-                        : colors.border,
-                  },
-                ]}
-              >
+              <View key={plan.id} style={[
+                styles.card, 
+                { 
+                  backgroundColor: colors.surface, 
+                  borderColor: isCurrentPlan ? colors.success : plan.isPopular ? colors.primary : colors.border,
+                  borderWidth: isCurrentPlan || plan.isPopular ? 2 : 1,
+                }
+              ]}>
+                {/* Plan Header */}
                 <View style={styles.planHeader}>
-                  <View>
-                    <Text style={[styles.planCardName, { color: colors.text }]}>
-                      {plan.name}
+                  <View style={styles.planTitleSection}>
+                    <View style={styles.planTitleRow}>
+                      <Text style={[styles.planName, { color: colors.text }]}>
+                        {plan.name}
+                      </Text>
                       {plan.isPopular && (
-                        <Text style={[styles.popularBadge, { color: colors.primary }]}> • Most Popular</Text>
+                        <View style={[styles.popularBadge, { backgroundColor: colors.primary }]}>
+                          <Text style={styles.popularText}>Popular</Text>
+                        </View>
                       )}
-                    </Text>
-                    <Text style={[styles.planCardPrice, { color: colors.primary }]}>
-                      {plan.price === 0 ? 'Free' : `$${plan.price}/${plan.interval}`}
-                    </Text>
-                  </View>
-                  
-                  {isCurrentPlan && (
-                    <View style={styles.currentSection}>
-                      <View style={[styles.currentBadge, { backgroundColor: colors.success }]}>
-                        <Text style={styles.currentBadgeText}>Current Plan</Text>
-                      </View>
-                      
-                      {subscription && (
-                        <View style={styles.statusInfo}>
-                          <View style={styles.statusRow}>
-                            <FontAwesome5
-                              name={getStatusIcon(subscription.status)}
-                              size={12}
-                              color={getStatusColor(subscription.status)}
-                            />
-                            <Text style={[styles.statusText, { color: getStatusColor(subscription.status) }]}>
-                              {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
-                            </Text>
-                          </View>
-                          
-                          {isTrialActive() && (
-                            <Text style={[styles.infoText, { color: colors.warning }]}>
-                              Trial expires in {getDaysUntilExpiry()} days
-                            </Text>
-                          )}
-                          
-                          {subscription.status === 'canceled' && (
-                            <Text style={[styles.infoText, { color: colors.error }]}>
-                              Expires in {getDaysUntilExpiry()} days
-                            </Text>
-                          )}
-                          
-                          {subscription.plan !== 'free' && subscription.status === 'active' && !isTrialActive() && (
-                            <Text style={[styles.infoText, { color: colors.textSecondary }]}>
-                              Renews in {getDaysUntilExpiry()} days
-                            </Text>
-                          )}
+                      {isCurrentPlan && (
+                        <View style={[styles.currentBadge, { backgroundColor: colors.success }]}>
+                          <Text style={styles.currentBadgeText}>Current</Text>
                         </View>
                       )}
                     </View>
-                  )}
+                    <Text style={[styles.planPrice, { color: colors.text }]}>
+                      {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                      {plan.price > 0 && <Text style={[styles.planInterval, { color: colors.textSecondary }]}>/{plan.interval}</Text>}
+                    </Text>
+                  </View>
                 </View>
 
+                {/* Plan Features */}
                 <View style={styles.planFeatures}>
-                  {plan.features.map((feature, index) => (
+                  {plan.features.slice(0, 4).map((feature, index) => (
                     <View key={index} style={styles.featureRow}>
                       <FontAwesome5 name="check" size={12} color={colors.success} />
                       <Text style={[styles.featureText, { color: colors.textSecondary }]}>{feature}</Text>
@@ -257,93 +226,39 @@ const SubscriptionScreen = () => {
                   ))}
                 </View>
 
-                {/* Plan Actions */}
-                {showActions && (
-                  <View style={styles.planActions}>
-                    {plan.trialDays && subscription?.plan === 'free' && (
+                {/* Action Button */}
+                {!isCurrentPlan && (
+                  <View style={styles.actionContainer}>
+                    {plan.trialDays && subscription?.plan === 'free' ? (
                       <TouchableOpacity
-                        style={[styles.trialButton, { borderColor: colors.warning }]}
-                        onPress={() => handleStartTrial(plan.id)}
+                        style={[styles.actionButton, { backgroundColor: colors.info }]}
+                        onPress={() => {
+                          feedback.buttonPress();
+                          handleStartTrial(plan.id);
+                        }}
                         disabled={actionLoading === `trial-${plan.id}`}
                       >
                         {actionLoading === `trial-${plan.id}` ? (
-                          <ActivityIndicator size="small" color={colors.warning} />
+                          <ActivityIndicator size="small" color="white" />
                         ) : (
-                          <Text style={[styles.trialButtonText, { color: colors.warning }]}>
-                            Start {plan.trialDays}-day trial
-                          </Text>
+                          <Text style={styles.actionButtonText}>Start {plan.trialDays}-day Free Trial</Text>
                         )}
                       </TouchableOpacity>
-                    )}
-                    
-                    <TouchableOpacity
-                      style={[styles.upgradeButton, { backgroundColor: colors.primary }]}
-                      onPress={() => handleUpgrade(plan.id)}
-                      disabled={actionLoading === plan.id}
-                    >
-                      {actionLoading === plan.id ? (
-                        <ActivityIndicator size="small" color="white" />
-                      ) : (
-                        <Text style={styles.upgradeButtonText}>
-                          {plan.price === 0 ? 'Downgrade' : 'Upgrade'}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                {/* Current Plan Management */}
-                {isCurrentPlan && subscription && subscription.plan !== 'free' && (
-                  <View style={styles.managementActions}>
-                    {subscription.status === 'active' && (
-                      <>
-                        <TouchableOpacity
-                          style={[styles.managementButton, { backgroundColor: colors.error + '20', borderColor: colors.error }]}
-                          onPress={handleCancel}
-                          disabled={actionLoading === 'cancel'}
-                        >
-                          {actionLoading === 'cancel' ? (
-                            <ActivityIndicator size="small" color={colors.error} />
-                          ) : (
-                            <>
-                              <FontAwesome5 name="times" size={14} color={colors.error} />
-                              <Text style={[styles.managementButtonText, { color: colors.error }]}>Cancel</Text>
-                            </>
-                          )}
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={[styles.managementButton, { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}
-                          onPress={handleToggleAutoRenew}
-                          disabled={actionLoading === 'auto-renew'}
-                        >
-                          {actionLoading === 'auto-renew' ? (
-                            <ActivityIndicator size="small" color={colors.primary} />
-                          ) : (
-                            <>
-                              <FontAwesome5 name="sync" size={14} color={colors.primary} />
-                              <Text style={[styles.managementButtonText, { color: colors.primary }]}>
-                                {subscription.autoRenew ? 'Disable' : 'Enable'} Auto-Renewal
-                              </Text>
-                            </>
-                          )}
-                        </TouchableOpacity>
-                      </>
-                    )}
-
-                    {subscription.status === 'canceled' && (
+                    ) : (
                       <TouchableOpacity
-                        style={[styles.managementButton, { backgroundColor: colors.success + '20', borderColor: colors.success }]}
-                        onPress={handleRenew}
-                        disabled={actionLoading === 'renew'}
+                        style={[styles.actionButton, { backgroundColor: plan.price === 0 ? colors.textSecondary : colors.success }]}
+                        onPress={() => {
+                          feedback.buttonPress();
+                          handleUpgrade(plan.id);
+                        }}
+                        disabled={actionLoading === plan.id}
                       >
-                        {actionLoading === 'renew' ? (
-                          <ActivityIndicator size="small" color={colors.success} />
+                        {actionLoading === plan.id ? (
+                          <ActivityIndicator size="small" color="white" />
                         ) : (
-                          <>
-                            <FontAwesome5 name="redo" size={14} color={colors.success} />
-                            <Text style={[styles.managementButtonText, { color: colors.success }]}>Renew</Text>
-                          </>
+                          <Text style={styles.actionButtonText}>
+                            {plan.price === 0 ? 'Switch to Free' : 'Upgrade Now'}
+                          </Text>
                         )}
                       </TouchableOpacity>
                     )}
@@ -353,6 +268,84 @@ const SubscriptionScreen = () => {
             );
           })}
         </View>
+
+        {/* Management Actions */}
+        {subscription && subscription.plan !== 'free' && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Subscription</Text>
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              {subscription.status === 'active' && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.managementOption]}
+                    onPress={() => {
+                      feedback.buttonPress();
+                      handleToggleAutoRenew();
+                    }}
+                    disabled={actionLoading === 'auto-renew'}
+                  >
+                    <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                      <FontAwesome5 name="sync" size={14} color={colors.primary} />
+                    </View>
+                    <View style={styles.optionContent}>
+                      <Text style={[styles.optionText, { color: colors.text }]}>
+                        {subscription.autoRenew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
+                      </Text>
+                      <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                        {subscription.autoRenew ? 'Turn off automatic billing' : 'Automatically renew your subscription'}
+                      </Text>
+                    </View>
+                    {actionLoading === 'auto-renew' && <ActivityIndicator size="small" color={colors.primary} />}
+                  </TouchableOpacity>
+
+                  <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+                  <TouchableOpacity
+                    style={styles.managementOption}
+                    onPress={() => {
+                      feedback.buttonPress();
+                      handleCancel();
+                    }}
+                    disabled={actionLoading === 'cancel'}
+                  >
+                    <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
+                      <FontAwesome5 name="times" size={14} color={colors.error} />
+                    </View>
+                    <View style={styles.optionContent}>
+                      <Text style={[styles.optionText, { color: colors.error }]}>Cancel Subscription</Text>
+                      <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                        You&apos;ll keep access until your current period ends
+                      </Text>
+                    </View>
+                    {actionLoading === 'cancel' && <ActivityIndicator size="small" color={colors.error} />}
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {subscription.status === 'canceled' && (
+                <TouchableOpacity
+                  style={styles.managementOption}
+                  onPress={() => {
+                    feedback.buttonPress();
+                    handleRenew();
+                  }}
+                  disabled={actionLoading === 'renew'}
+                >
+                  <View style={[styles.iconContainer, { backgroundColor: colors.success + '20' }]}>
+                    <FontAwesome5 name="redo" size={14} color={colors.success} />
+                  </View>
+                  <View style={styles.optionContent}>
+                    <Text style={[styles.optionText, { color: colors.text }]}>Renew Subscription</Text>
+                    <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                      Reactivate your subscription
+                    </Text>
+                  </View>
+                  {actionLoading === 'renew' && <ActivityIndicator size="small" color={colors.success} />}
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -374,7 +367,55 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    padding: 16,
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    minHeight: 56,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  optionSubtext: {
+    fontSize: 13,
+    opacity: 0.8,
+  },
+  planTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  planPrice: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   card: {
     borderRadius: 16,
@@ -405,23 +446,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   planHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
     marginBottom: 16,
   },
-  planCardName: {
-    fontSize: 18,
+  planTitleSection: {
+    flex: 1,
+  },
+  planName: {
+    fontSize: 20,
     fontWeight: '700',
     marginBottom: 4,
   },
   popularBadge: {
-    fontSize: 14,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  popularText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: '600',
   },
-  planCardPrice: {
+  planInterval: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   currentSection: {
     alignItems: 'flex-end',
@@ -517,6 +566,31 @@ const styles = StyleSheet.create({
   managementButtonText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  actionContainer: {
+    marginTop: 16,
+  },
+  actionButton: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  managementOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 0,
   },
 });
 
