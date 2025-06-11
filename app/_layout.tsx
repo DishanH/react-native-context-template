@@ -110,14 +110,6 @@ function CustomDrawerContent(props: any) {
           >
             Dashboard
           </Text>
-          {(currentRouteName === "tabs" || currentRouteName === "index") && (
-            <View
-              style={[
-                styles.activeIndicator,
-                { backgroundColor: colors.primary },
-              ]}
-            />
-          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -153,14 +145,6 @@ function CustomDrawerContent(props: any) {
           >
             Groups
           </Text>
-          {currentRouteName === "groups" && (
-            <View
-              style={[
-                styles.activeIndicator,
-                { backgroundColor: colors.primary },
-              ]}
-            />
-          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -196,14 +180,6 @@ function CustomDrawerContent(props: any) {
           >
             Activity
           </Text>
-          {currentRouteName === "activity" && (
-            <View
-              style={[
-                styles.activeIndicator,
-                { backgroundColor: colors.primary },
-              ]}
-            />
-          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -236,14 +212,6 @@ function CustomDrawerContent(props: any) {
           >
             Subscription
           </Text>
-          {currentRouteName === "subscription" && (
-            <View
-              style={[
-                styles.activeIndicator,
-                { backgroundColor: colors.primary },
-              ]}
-            />
-          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -279,14 +247,6 @@ function CustomDrawerContent(props: any) {
           >
             Settings
           </Text>
-          {currentRouteName === "settings" && (
-            <View
-              style={[
-                styles.activeIndicator,
-                { backgroundColor: colors.primary },
-              ]}
-            />
-          )}
         </TouchableOpacity>
       </ScrollView>
 
@@ -694,15 +654,7 @@ const styles = StyleSheet.create({
   drawerItemText: {
     fontSize: 16,
   },
-  activeIndicator: {
-    position: "absolute",
-    right: 8,
-    top: "50%",
-    transform: [{ translateY: -8 }],
-    width: 6,
-    height: 16,
-    borderRadius: 3,
-  },
+
   signOutButton: {
     flexDirection: "row",
     alignItems: "center",
