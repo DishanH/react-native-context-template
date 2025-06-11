@@ -6,6 +6,7 @@ import * as React from "react";
 import { Platform, StyleSheet, View, TouchableOpacity } from "react-native";
 import ScrollContextProvider from "../../src/providers/ScrollContextProvider";
 import TabBar from "../../src/navigation/components/TabBar";
+import AnimatedHeader from "../../src/shared/components/layout/AnimatedHeader";
 import { useTheme } from "../../contexts";
 import { feedback } from "../../lib/feedback";
 
@@ -39,8 +40,11 @@ function CustomDrawerToggle(
   );
 }
 
+
+
 export default function TabLayout() {
   const { colors } = useTheme();
+  const [currentRoute, setCurrentRoute] = React.useState("Dashboard");
 
   return (
     <ScrollContextProvider>
@@ -48,33 +52,8 @@ export default function TabLayout() {
         <Tabs
           tabBar={(props: any) => <TabBar {...props} />}
           screenOptions={({ route }: { route: any }) => ({
-            headerShown: true,
+            headerShown: false, // Hide default header
             animation: "fade",
-            headerTitle:
-              route.name !== "index"
-                ? route.name
-                    .split("-")
-                    .map(
-                      (word: string) =>
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                    )
-                    .join(" ")
-                : "Dashboard",
-            headerTitleAlign: "center",
-            headerTitleStyle: {
-              fontWeight: "600",
-              fontSize: 18,
-              color: colors.text,
-            },
-            headerStyle: {
-              backgroundColor: colors.headerBackground,
-              elevation: 0, // Remove shadow on Android
-              shadowOpacity: 0, // Remove shadow on iOS
-              borderBottomWidth: 0,
-              height: Platform.OS === "ios" ? 115 : 70,
-              // paddingBottom: 10,
-            },
-            headerLeft: (props: any) => <CustomDrawerToggle {...props} />,
             tabBarStyle: {
               backgroundColor: colors.surface,
               borderTopColor: colors.border,
@@ -102,6 +81,9 @@ export default function TabLayout() {
                 />
               ),
             }}
+            listeners={{
+              focus: () => setCurrentRoute("Dashboard"),
+            }}
           />
           <Tabs.Screen
             name="add-member"
@@ -115,6 +97,9 @@ export default function TabLayout() {
                   solid
                 />
               ),
+            }}
+            listeners={{
+              focus: () => setCurrentRoute("Create"),
             }}
           />
           <Tabs.Screen
@@ -130,6 +115,9 @@ export default function TabLayout() {
                 />
               ),
             }}
+            listeners={{
+              focus: () => setCurrentRoute("Manage"),
+            }}
           />
           <Tabs.Screen
             name="add-expense"
@@ -139,8 +127,20 @@ export default function TabLayout() {
                 <FontAwesome5 name="plus" size={size || 20} color={color} />
               ),
             }}
+            listeners={{
+              focus: () => setCurrentRoute("Connect"),
+            }}
           />
         </Tabs>
+        
+        {/* Animated Header Overlay */}
+        <AnimatedHeader
+          title={currentRoute}
+          headerLeft={<CustomDrawerToggle />}
+          backgroundColor={colors.headerBackground}
+          titleColor={colors.text}
+          enableBlur={true}
+        />
       </View>
     </ScrollContextProvider>
   );
