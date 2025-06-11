@@ -2,7 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import React from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
-import { useTheme, useSubscription } from '../../contexts';
+import { useTheme, useSubscription } from '../../../../contexts';
 
 interface SubscriptionStatusProps {
   showUpgradeButton?: boolean;

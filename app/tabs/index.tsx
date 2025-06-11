@@ -1,7 +1,7 @@
 import * as React from "react";
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { useTheme } from '../../contexts';
-import SubscriptionStatus from '../components/SubscriptionStatus';
+import SubscriptionStatus from '../features/subscription/components/SubscriptionStatus';
 
 export default function DashboardTabScreen() {
   const { colors } = useTheme();

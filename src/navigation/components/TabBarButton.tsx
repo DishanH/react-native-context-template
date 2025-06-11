@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import type { ThemeColors } from '../../theme';
+import type { ThemeColors } from '../../../theme';
 
 // Calculate the tab button width
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

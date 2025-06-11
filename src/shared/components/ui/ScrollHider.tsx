@@ -1,5 +1,5 @@
 import { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
-import { useScrollVisibility } from './TabBar';
+import { useScrollVisibility } from '../../../navigation/components/TabBar';
 
 /**
  * A hook to connect any scrollable component to the tab bar visibility system

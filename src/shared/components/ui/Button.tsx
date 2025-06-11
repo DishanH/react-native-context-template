@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { useTheme } from '../../contexts';
-import { feedback } from '../../lib/feedback';
+import { useTheme } from '../../../../contexts';
+import { feedback } from '../../../../lib/feedback';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'destructive' | 'ghost' | 'link';
 export type ButtonSize = 'sm' | 'md' | 'lg';

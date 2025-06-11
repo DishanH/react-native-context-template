@@ -4,8 +4,8 @@ import { useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 import * as React from "react";
 import { Platform, StyleSheet, View, TouchableOpacity } from "react-native";
-import ScrollContextProvider from "../components/ScrollContextProvider";
-import TabBar from "../components/TabBar";
+import ScrollContextProvider from "../../src/providers/ScrollContextProvider";
+import TabBar from "../../src/navigation/components/TabBar";
 import { useTheme } from "../../contexts";
 import { feedback } from "../../lib/feedback";
 

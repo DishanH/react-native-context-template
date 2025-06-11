@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useTheme } from '../../contexts';
+import { useTheme } from '../../../../contexts';
 import Button from './Button';
 
 const ButtonDemo: React.FC = () => {

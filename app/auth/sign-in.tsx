@@ -13,7 +13,7 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../components/Button';
+import Button from '../../src/shared/components/ui/Button';
 import { useAuth } from '../../contexts';
 import { useTheme } from '../../contexts';
 
