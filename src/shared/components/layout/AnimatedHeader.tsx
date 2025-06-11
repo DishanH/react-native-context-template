@@ -32,7 +32,7 @@ export default function AnimatedHeader({
     const opacity = interpolate(
       scrollY,
       [0, 50, 100],
-      [0, 0.3, 0.8],
+      [0, 0.2, 0.4],
       Extrapolate.CLAMP
     );
     
@@ -48,7 +48,7 @@ export default function AnimatedHeader({
     const opacity = interpolate(
       scrollY,
       [0, 50, 100],
-      [1, 0.7, 0.2],
+      [1, 0.9, 0.8],
       Extrapolate.CLAMP
     );
     
