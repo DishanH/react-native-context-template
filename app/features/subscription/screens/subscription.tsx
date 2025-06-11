@@ -199,16 +199,18 @@ const SubscriptionScreen = () => {
                       <Text style={[styles.planName, { color: colors.text }]}>
                         {plan.name}
                       </Text>
-                      {plan.isPopular && (
-                        <View style={[styles.popularBadge, { backgroundColor: colors.primary }]}>
-                          <Text style={styles.popularText}>Popular</Text>
-                        </View>
-                      )}
-                      {isCurrentPlan && (
-                        <View style={[styles.currentBadge, { backgroundColor: colors.success }]}>
-                          <Text style={styles.currentBadgeText}>Current</Text>
-                        </View>
-                      )}
+                      <View style={styles.badgeContainer}>
+                        {plan.isPopular && (
+                          <View style={[styles.popularBadge, { backgroundColor: colors.primary }]}>
+                            <Text style={styles.popularText}>Popular</Text>
+                          </View>
+                        )}
+                        {isCurrentPlan && (
+                          <View style={[styles.currentBadge, { backgroundColor: colors.success }]}>
+                            <Text style={styles.currentBadgeText}>Current</Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
                     <Text style={[styles.planPrice, { color: colors.text }]}>
                       {plan.price === 0 ? 'Free' : `$${plan.price}`}
@@ -257,66 +259,109 @@ const SubscriptionScreen = () => {
         </View>
 
         {/* Management Actions */}
-        {subscription && subscription.plan !== 'free' && (
+        {subscription && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Subscription</Text>
             <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              {subscription.status === 'active' && (
+              
+              {/* Current Plan Status */}
+              <View style={styles.managementOption}>
+                <View style={[styles.iconContainer, { backgroundColor: getStatusColor(subscription.status) + '20' }]}>
+                  <FontAwesome5 name={getStatusIcon(subscription.status)} size={14} color={getStatusColor(subscription.status)} />
+                </View>
+                <View style={styles.optionContent}>
+                  <Text style={[styles.optionText, { color: colors.text }]}>
+                    Current Plan: {availablePlans.find(p => p.id === subscription.plan)?.name || subscription.plan}
+                  </Text>
+                  <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                    Status: {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+                    {subscription.endDate && ` • Expires ${formatDate(subscription.endDate)}`}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Paid Plan Management */}
+              {subscription.plan !== 'free' && (
                 <>
-                  <TouchableOpacity
-                    style={[styles.managementOption]}
-                    onPress={() => {
-                      feedback.buttonPress();
-                      handleToggleAutoRenew();
-                    }}
-                    disabled={actionLoading === 'auto-renew'}
-                  >
-                    <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-                      <FontAwesome5 name="sync" size={14} color={colors.primary} />
-                    </View>
-                    <View style={styles.optionContent}>
-                      <Text style={[styles.optionText, { color: colors.text }]}>
-                        {subscription.autoRenew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
-                      </Text>
-                      <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                        {subscription.autoRenew ? 'Turn off automatic billing' : 'Automatically renew your subscription'}
-                      </Text>
-                    </View>
-                    {actionLoading === 'auto-renew' && <ActivityIndicator size="small" color={colors.primary} />}
-                  </TouchableOpacity>
-
                   <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                  
+                  {subscription.status === 'active' && (
+                    <>
+                      <TouchableOpacity
+                        style={[styles.managementOption]}
+                        onPress={() => {
+                          feedback.buttonPress();
+                          handleToggleAutoRenew();
+                        }}
+                        disabled={actionLoading === 'auto-renew'}
+                      >
+                        <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                          <FontAwesome5 name="sync" size={14} color={colors.primary} />
+                        </View>
+                        <View style={styles.optionContent}>
+                          <Text style={[styles.optionText, { color: colors.text }]}>
+                            {subscription.autoRenew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
+                          </Text>
+                          <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                            {subscription.autoRenew ? 'Turn off automatic billing' : 'Automatically renew your subscription'}
+                          </Text>
+                        </View>
+                        {actionLoading === 'auto-renew' && <ActivityIndicator size="small" color={colors.primary} />}
+                      </TouchableOpacity>
 
-                  <View style={styles.managementButtonContainer}>
-                    <Button
-                      title="Cancel Subscription"
-                      variant="destructive"
-                      onPress={handleCancel}
-                      disabled={actionLoading === 'cancel'}
-                      loading={actionLoading === 'cancel'}
-                      style={styles.managementButton}
-                    />
-                                         <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
-                       You&apos;ll keep access until your current period ends
-                     </Text>
-                  </View>
+                      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+                      <View style={styles.managementButtonContainer}>
+                        <Button
+                          title="Cancel Subscription"
+                          variant="destructive"
+                          onPress={handleCancel}
+                          disabled={actionLoading === 'cancel'}
+                          loading={actionLoading === 'cancel'}
+                        />
+                        <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
+                          You&apos;ll keep access until your current period ends
+                        </Text>
+                      </View>
+                    </>
+                  )}
+
+                  {subscription.status === 'canceled' && (
+                    <View style={styles.managementButtonContainer}>
+                      <Button
+                        title="Renew Subscription"
+                        variant="primary"
+                        onPress={handleRenew}
+                        disabled={actionLoading === 'renew'}
+                        loading={actionLoading === 'renew'}
+                      />
+                      <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
+                        Reactivate your subscription
+                      </Text>
+                    </View>
+                  )}
                 </>
               )}
 
-              {subscription.status === 'canceled' && (
-                <View style={styles.managementButtonContainer}>
-                  <Button
-                    title="Renew Subscription"
-                    variant="primary"
-                    onPress={handleRenew}
-                    disabled={actionLoading === 'renew'}
-                    loading={actionLoading === 'renew'}
-                    style={styles.managementButton}
-                  />
-                  <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
-                    Reactivate your subscription
-                  </Text>
-                </View>
+              {/* Free Plan Management */}
+              {subscription.plan === 'free' && (
+                <>
+                  <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                  
+                  <View style={styles.managementButtonContainer}>
+                    <Text style={[styles.managementHint, { color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }]}>
+                      Upgrade to unlock premium features and remove limitations
+                    </Text>
+                    <Button
+                      title="View Premium Plans"
+                      variant="primary"
+                      onPress={() => {
+                        feedback.buttonPress();
+                        // Scroll to top to show plans
+                      }}
+                    />
+                  </View>
+                </>
               )}
             </View>
           </View>
@@ -388,6 +433,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   planPrice: {
     fontSize: 14,
     fontWeight: '600',
@@ -436,7 +486,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    marginLeft: 8,
   },
   popularText: {
     color: 'white',
@@ -451,10 +500,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   currentBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginBottom: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   currentBadgeText: {
     color: 'white',
