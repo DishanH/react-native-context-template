@@ -111,7 +111,7 @@ A comprehensive, production-ready React Native template built with Expo. Feature
 
 1. **Create new project from template**:
    ```bash
-   npx create-expo-app MyApp --template https://github.com/dhewage/react-native-context-template
+   npx create-expo-app MyApp --template https://github.com/dishanh/react-native-context-template
    cd MyApp
    ```
 
