@@ -1,9 +1,9 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, interpolate, Extrapolate } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { useAnimatedStyle, interpolate } from "react-native-reanimated";
 import { useScrollVisibility } from "../../../navigation/components/TabBar";
+import { useHeader } from "../../../../contexts";
 
 interface AnimatedHeaderProps {
   title: string;
@@ -22,8 +22,8 @@ export default function AnimatedHeader({
   titleColor = "#333",
   enableBlur = true,
 }: AnimatedHeaderProps) {
-  const insets = useSafeAreaInsets();
   const { scrollY } = useScrollVisibility();
+  const { headerHeight, safeAreaTop } = useHeader();
 
   // Animated style for blur effect
   const animatedBlurStyle = useAnimatedStyle(() => {
@@ -31,9 +31,9 @@ export default function AnimatedHeader({
     
     const opacity = interpolate(
       scrollY,
-      [0, 50, 100],
-      [0, 0.2, 0.4],
-      Extrapolate.CLAMP
+      [0, 80, 150],
+      [0, 0.05, 0.1],
+      "clamp"
     );
     
     return {
@@ -41,23 +41,14 @@ export default function AnimatedHeader({
     };
   });
 
-  // Animated style for background opacity
+  // Animated style for background opacity - keep background color constant
   const animatedBackgroundStyle = useAnimatedStyle(() => {
-    if (!enableBlur) return { opacity: 1 };
-    
-    const opacity = interpolate(
-      scrollY,
-      [0, 50, 100],
-      [1, 0.9, 0.8],
-      Extrapolate.CLAMP
-    );
-    
     return {
-      opacity,
+      opacity: 0.85, // Light transparency but constant
     };
   });
 
-  const headerHeight = Platform.OS === "ios" ? 44 + insets.top : 56 + insets.top;
+
 
   return (
     <View style={[styles.headerContainer, { height: headerHeight }]}>
@@ -82,7 +73,7 @@ export default function AnimatedHeader({
       )}
       
       {/* Content */}
-      <View style={[styles.headerContent, { paddingTop: insets.top }]}>
+      <View style={[styles.headerContent, { paddingTop: safeAreaTop }]}>
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             {headerLeft}

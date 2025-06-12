@@ -15,12 +15,14 @@ import {
     View
 } from 'react-native';
 import Button from '../../../../src/shared/components/ui/Button';
-import { useTheme, useAuth } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useAuth, useHeader } from '../../../../contexts';
 import { feedback } from '../../../../lib/feedback';
 
-export default function EditProfileScreen() {
+function EditProfileContent() {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const { headerHeight, handleScroll } = useHeader();
   
   const [name, setName] = useState(user?.name || '');
   const [profileImage, setProfileImage] = useState('https://randomuser.me/api/portraits/men/32.jpg');
@@ -97,17 +99,18 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-
-        <ScrollView 
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
         >
+          <ScrollView 
+            style={styles.content}
+            contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+          >
           {/* Profile Picture Section */}
           <View style={styles.profileSection}>
             <View style={styles.profilePictureContainer}>
@@ -198,6 +201,14 @@ export default function EditProfileScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
+  );
+}
+
+export default function EditProfileScreen() {
+  return (
+    <PageWithAnimatedHeader title="Edit Profile" showBackButton={true}>
+      <EditProfileContent />
+    </PageWithAnimatedHeader>
   );
 }
 

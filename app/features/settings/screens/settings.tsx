@@ -3,12 +3,14 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import ThemeToggle from '../../../../src/shared/components/ui/ThemeToggle';
-import { useTheme, useAuth } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useAuth, useHeader } from '../../../../contexts';
 import { feedback } from '../../../../lib/feedback';
 
-export default function SettingsScreen() {
+function SettingsContent() {
   const { colors } = useTheme();
   const { signOut, user } = useAuth();
+  const { headerHeight, handleScroll } = useHeader();
 
   const handleLogout = () => {
     feedback.buttonPress();
@@ -36,7 +38,9 @@ export default function SettingsScreen() {
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     >
       {/* Profile Section */}
@@ -160,6 +164,14 @@ export default function SettingsScreen() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+  );
+}
+
+export default function SettingsScreen() {
+  return (
+    <PageWithAnimatedHeader title="Settings">
+      <SettingsContent />
+    </PageWithAnimatedHeader>
   );
 }
 

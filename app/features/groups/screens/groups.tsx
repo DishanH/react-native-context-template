@@ -3,12 +3,14 @@ import React from 'react';
 import { Button, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useBottomSheet } from '../../../../src/providers/BottomSheetProvider';
 import SampleBottomSheetContent from '../../../../src/shared/components/ui/SampleBottomSheetContent';
-import { useTheme, useSubscription } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useSubscription, useHeader } from '../../../../contexts';
 
-export default function GroupsScreen() {
+function GroupsContent() {
   const { colors } = useTheme();
   const { openBottomSheet } = useBottomSheet();
   const { subscription, isTrialActive } = useSubscription();
+  const { headerHeight, handleScroll } = useHeader();
 
   const handleOpenBottomSheet = () => {
     openBottomSheet(<SampleBottomSheetContent />, '60%');
@@ -29,7 +31,12 @@ export default function GroupsScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView 
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={{ paddingTop: headerHeight + 20 }}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+    >
       {/* Header Info Card */}
       <View style={[styles.headerCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.headerContent}>
@@ -89,7 +96,7 @@ export default function GroupsScreen() {
             <View style={[styles.limitWarning, { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' }]}>
               <FontAwesome5 name="exclamation-triangle" size={14} color={colors.warning} />
               <Text style={[styles.limitText, { color: colors.warning }]}>
-                You're using {groupStats.totalGroups} of {groupStats.groupsLimit} groups. 
+                You&apos;re using {groupStats.totalGroups} of {groupStats.groupsLimit} groups. 
                 <Text style={{ fontWeight: '600' }}> Upgrade for unlimited groups.</Text>
               </Text>
             </View>
@@ -119,6 +126,14 @@ export default function GroupsScreen() {
         />
       </View>
     </ScrollView>
+  );
+}
+
+export default function GroupsScreen() {
+  return (
+    <PageWithAnimatedHeader title="Groups">
+      <GroupsContent />
+    </PageWithAnimatedHeader>
   );
 }
 

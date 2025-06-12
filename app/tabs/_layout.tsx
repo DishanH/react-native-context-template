@@ -7,7 +7,7 @@ import { Platform, StyleSheet, View, TouchableOpacity } from "react-native";
 import ScrollContextProvider from "../../src/providers/ScrollContextProvider";
 import TabBar from "../../src/navigation/components/TabBar";
 import AnimatedHeader from "../../src/shared/components/layout/AnimatedHeader";
-import { useTheme } from "../../contexts";
+import { useTheme, HeaderProvider } from "../../contexts";
 import { feedback } from "../../lib/feedback";
 
 // Custom Drawer Toggle Button with circular background
@@ -47,28 +47,29 @@ export default function TabLayout() {
   const [currentRoute, setCurrentRoute] = React.useState("Dashboard");
 
   return (
-    <ScrollContextProvider>
-      <View style={styles.container}>
-        <Tabs
-          tabBar={(props: any) => <TabBar {...props} />}
-          screenOptions={({ route }: { route: any }) => ({
-            headerShown: false, // Hide default header
-            animation: "fade",
-            tabBarStyle: {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.border,
-              height: Platform.OS === "ios" ? 85 : 65,
-              paddingBottom: Platform.OS === "ios" ? 25 : 10,
-              paddingTop: 10,
-            },
-            tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.icon,
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontWeight: "500",
-            },
-          })}
-        >
+    <HeaderProvider>
+      <ScrollContextProvider>
+        <View style={styles.container}>
+          <Tabs
+            tabBar={(props: any) => <TabBar {...props} />}
+            screenOptions={({ route }: { route: any }) => ({
+              headerShown: false, // Hide default header
+              animation: "fade",
+              tabBarStyle: {
+                backgroundColor: colors.surface,
+                borderTopColor: colors.border,
+                height: Platform.OS === "ios" ? 85 : 65,
+                paddingBottom: Platform.OS === "ios" ? 25 : 10,
+                paddingTop: 10,
+              },
+              tabBarActiveTintColor: colors.primary,
+              tabBarInactiveTintColor: colors.icon,
+              tabBarLabelStyle: {
+                fontSize: 12,
+                fontWeight: "500",
+              },
+            })}
+          >
           <Tabs.Screen
             name="index"
             options={{
@@ -141,8 +142,9 @@ export default function TabLayout() {
           titleColor={colors.text}
           enableBlur={true}
         />
-      </View>
-    </ScrollContextProvider>
+        </View>
+      </ScrollContextProvider>
+    </HeaderProvider>
   );
 }
 

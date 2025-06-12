@@ -3,12 +3,14 @@ import React from 'react';
 import { Button, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useBottomSheet } from '../../../../src/providers/BottomSheetProvider';
 import SampleBottomSheetContent from '../../../../src/shared/components/ui/SampleBottomSheetContent';
-import { useTheme, useSubscription } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useSubscription, useHeader } from '../../../../contexts';
 
-export default function ActivityScreen() {
+function ActivityContent() {
   const { colors } = useTheme();
   const { openBottomSheet } = useBottomSheet();
   const { subscription, isTrialActive } = useSubscription();
+  const { headerHeight, handleScroll } = useHeader();
 
   const handleOpenBottomSheet = () => {
     openBottomSheet(<SampleBottomSheetContent />, '30%');
@@ -91,7 +93,12 @@ export default function ActivityScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView 
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={{ paddingTop: headerHeight + 20 }}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+    >
       {/* Header Info Card */}
       <View style={[styles.headerCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.headerContent}>
@@ -206,6 +213,14 @@ export default function ActivityScreen() {
         />
       </View>
     </ScrollView>
+  );
+}
+
+export default function ActivityScreen() {
+  return (
+    <PageWithAnimatedHeader title="Activity">
+      <ActivityContent />
+    </PageWithAnimatedHeader>
   );
 }
 

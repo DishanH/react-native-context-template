@@ -1,17 +1,11 @@
 import * as React from "react";
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../../contexts';
+import { useTheme, useHeader } from '../../contexts';
 import SubscriptionStatus from '../features/subscription/components/SubscriptionStatus';
-import useScrollHider from '../../src/shared/components/ui/ScrollHider';
 
 export default function DashboardTabScreen() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
-  const { handleScroll } = useScrollHider();
-
-  // Calculate header height for padding
-  const headerHeight = 44 + insets.top;
+  const { headerHeight, handleScroll } = useHeader();
 
   return (
     <ScrollView 

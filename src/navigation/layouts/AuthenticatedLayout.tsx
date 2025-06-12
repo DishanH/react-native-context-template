@@ -13,30 +13,13 @@ export function AuthenticatedLayout() {
     <Drawer
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={({ route }) => ({
-        headerShown: true,
-        headerTitle: route.name !== 'index' && route.name !== 'tabs' ? route.name.charAt(0).toUpperCase() + route.name.slice(1) : "",
-        headerTitleAlign: 'center',
-        headerTitleStyle: {
-          fontWeight: '600',
-          fontSize: 18,
-          color: colors.text,
-        },
-        headerStyle: {
-          backgroundColor: colors.headerBackground,
-          elevation: 0, // Remove shadow on Android
-          shadowOpacity: 0, // Remove shadow on iOS
-          borderBottomWidth: 0,
-          height: Platform.OS === 'ios' ? 115 : 70,
-        },
-        headerShadowVisible: false,
+        headerShown: false, // Disable default headers for all screens
         drawerType: "slide",
         drawerStyle: {
           width: "75%",
           backgroundColor: colors.drawerBackground,
         },
         swipeEdgeWidth: 50,
-        headerLeft: (props) => <CustomDrawerToggle {...props} />,
-        // Prevent gestures from opening drawer when not authenticated
         gestureEnabled: true,
       })}
     >
@@ -44,14 +27,12 @@ export function AuthenticatedLayout() {
         name="index"
         options={{
           drawerLabel: "Home",
-          headerShown: false,
         }}
       />
       <Drawer.Screen
         name="tabs"
         options={{
           drawerLabel: "Dashboard",
-          headerShown: false,
         }}
       />
       <Drawer.Screen
@@ -94,7 +75,6 @@ export function AuthenticatedLayout() {
         name="about"
         options={{
           drawerLabel: "About",
-          headerLeft: () => <CustomBackButton />,
           drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />
@@ -102,7 +82,6 @@ export function AuthenticatedLayout() {
         name="edit-profile"
         options={{
           drawerLabel: "Edit Profile",
-          headerLeft: () => <CustomBackButton />,
           drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />
@@ -110,7 +89,6 @@ export function AuthenticatedLayout() {
         name="help-faq"
         options={{
           drawerLabel: "Help & FAQ",
-          headerLeft: () => <CustomBackButton />,
           drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />
@@ -118,7 +96,6 @@ export function AuthenticatedLayout() {
         name="privacy-policy"
         options={{
           drawerLabel: "Privacy Policy",
-          headerLeft: () => <CustomBackButton />,
           drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />
@@ -126,7 +103,6 @@ export function AuthenticatedLayout() {
         name="terms-of-service"
         options={{
           drawerLabel: "Terms of Service",
-          headerLeft: () => <CustomBackButton />,
           drawerItemStyle: { display: 'none' }, // Hide from drawer menu
         }}
       />

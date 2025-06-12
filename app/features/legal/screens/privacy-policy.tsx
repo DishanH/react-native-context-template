@@ -1,15 +1,20 @@
 import { FontAwesome5 } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import {
     ScrollView,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View
 } from 'react-native';
-import { useTheme } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useHeader } from '../../../../contexts';
+import { feedback } from '../../../../lib/feedback';
 
-export default function PrivacyPolicyScreen() {
+function PrivacyPolicyContent() {
   const { colors } = useTheme();
+  const { headerHeight, handleScroll } = useHeader();
 
   const sections = [
     {
@@ -64,7 +69,9 @@ export default function PrivacyPolicyScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -124,6 +131,40 @@ export default function PrivacyPolicyScreen() {
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+export default function PrivacyPolicyScreen() {
+  const { colors } = useTheme();
+  
+  const handleBackPress = () => {
+    feedback.back();
+    router.push('/about' as any);
+  };
+
+  const CustomBackToAbout = () => (
+    <TouchableOpacity
+      style={[
+        styles.backButton,
+        { 
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+      ]}
+      onPress={handleBackPress}
+    >
+      <FontAwesome5 name="arrow-left" size={18} color={colors.primary} />
+    </TouchableOpacity>
+  );
+
+  return (
+    <PageWithAnimatedHeader 
+      title="Privacy Policy" 
+      headerLeft={<CustomBackToAbout />}
+    >
+      <PrivacyPolicyContent />
+    </PageWithAnimatedHeader>
   );
 }
 
@@ -254,5 +295,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     opacity: 0.8,
+  },
+  backButton: {
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
   },
 }); 

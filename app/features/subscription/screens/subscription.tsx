@@ -11,12 +11,14 @@ import {
   View,
 } from 'react-native';
 import Button from '../../../../src/shared/components/ui/Button';
-import { useTheme, useSubscription } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useSubscription, useHeader } from '../../../../contexts';
 import type { SubscriptionPlan } from '../../../../contexts';
 import { feedback } from '../../../../lib/feedback';
 
-const SubscriptionScreen = () => {
+const SubscriptionContent = () => {
   const { colors } = useTheme();
+  const { headerHeight, handleScroll } = useHeader();
   const {
     subscription,
     isLoading,
@@ -173,7 +175,9 @@ const SubscriptionScreen = () => {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.scrollView} 
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
         {/* Subscription Plans */}
@@ -370,6 +374,14 @@ const SubscriptionScreen = () => {
     </View>
   );
 };
+
+export default function SubscriptionScreen() {
+  return (
+    <PageWithAnimatedHeader title="Subscription">
+      <SubscriptionContent />
+    </PageWithAnimatedHeader>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -626,4 +638,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SubscriptionScreen; 
+ 

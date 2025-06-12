@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import {
     Linking,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -10,11 +11,13 @@ import {
     View
 } from 'react-native';
 import Button from '../../../../src/shared/components/ui/Button';
-import { useTheme } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useHeader } from '../../../../contexts';
 import { feedback } from '../../../../lib/feedback';
 
-export default function AboutScreen() {
+function AboutContent() {
   const { colors } = useTheme();
+  const { headerHeight, handleScroll } = useHeader();
 
   const handleNavigateToPrivacy = () => {
     router.push('/privacy-policy' as any);
@@ -35,7 +38,9 @@ export default function AboutScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
         {/* App Info Section */}
@@ -198,6 +203,14 @@ export default function AboutScreen() {
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+export default function AboutScreen() {
+  return (
+    <PageWithAnimatedHeader title="About" showBackButton={true}>
+      <AboutContent />
+    </PageWithAnimatedHeader>
   );
 }
 

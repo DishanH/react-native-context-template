@@ -1,13 +1,15 @@
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
-import { useTheme } from '../../../../contexts';
+import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
+import { useTheme, useHeader } from '../../../../contexts';
 
 interface FAQItem {
   id: string;
@@ -76,8 +78,9 @@ const categoryIcons = {
 
 // Category colors will be theme-based now
 
-export default function HelpFAQScreen() {
+function HelpFAQContent() {
   const { colors } = useTheme();
+  const { headerHeight, handleScroll } = useHeader();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -114,10 +117,11 @@ export default function HelpFAQScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
         {/* Welcome Section */}
@@ -212,6 +216,14 @@ export default function HelpFAQScreen() {
 
       </ScrollView>
     </View>
+  );
+}
+
+export default function HelpFAQScreen() {
+  return (
+    <PageWithAnimatedHeader title="Help & FAQ" showBackButton={true}>
+      <HelpFAQContent />
+    </PageWithAnimatedHeader>
   );
 }
 
