@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
-import { ScrollContext } from '../navigation/components/TabBar';
+import { ScrollContext } from '../../contexts/ScrollContext';
 
 // Constants
 const SCROLL_TIMEOUT = 800; // Time in ms to wait before hiding tab bar

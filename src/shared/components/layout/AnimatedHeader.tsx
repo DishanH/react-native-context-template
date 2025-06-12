@@ -2,7 +2,7 @@ import { BlurView } from "expo-blur";
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, interpolate } from "react-native-reanimated";
-import { useScrollVisibility } from "../../../navigation/components/TabBar";
+import { useScrollVisibility } from "../../../../contexts/ScrollContext";
 import { useHeader } from "../../../../contexts";
 
 interface AnimatedHeaderProps {

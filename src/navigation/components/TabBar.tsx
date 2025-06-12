@@ -1,10 +1,11 @@
 import { BlurView } from "expo-blur";
 import * as React from "react";
-import { createContext, useCallback, useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../contexts";
+import { useScrollVisibility } from "../../../contexts/ScrollContext";
 import TabBarButton from "./TabBarButton";
 
 // Animation configuration constants
@@ -30,16 +31,6 @@ export const TAB_WIDTH = TAB_BAR_WIDTH / TAB_COUNT;
 
 // Create animated BlurView component
 // const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
-
-// Create a context to manage scroll position
-export const ScrollContext = createContext({
-  scrollY: 0,
-  setScrollY: (value: number) => {},
-  isScrolling: false,
-  setIsScrolling: (value: boolean) => {},
-});
-
-export const useScrollVisibility = () => useContext(ScrollContext);
 
 interface TabBarProps {
   state: any;
