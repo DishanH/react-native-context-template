@@ -92,7 +92,13 @@ function SettingsContent() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>App Preferences</Text>
         
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <TouchableOpacity style={styles.optionItem}>
+          <TouchableOpacity 
+            style={styles.optionItem}
+            onPress={() => {
+              feedback.navigate();
+              router.push('/storage-data' as any);
+            }}
+          >
             <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
               <FontAwesome5 name="download" size={14} color={colors.primary} />
             </View>

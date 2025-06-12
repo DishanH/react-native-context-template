@@ -107,38 +107,44 @@ function AboutContent() {
         {/* Legal Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal & Privacy</Text>
-          <View style={[styles.legalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.legalButtonContainer}>
-              <Button
-                title="Privacy Policy"
-                variant="outline"
-                onPress={() => {
-                  feedback.navigate();
-                  handleNavigateToPrivacy();
-                }}
-                style={styles.legalButton}
-              />
-              <Text style={[styles.legalHint, { color: colors.textSecondary }]}>
-                How we collect, use, and protect your data
-              </Text>
-            </View>
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                feedback.navigate();
+                handleNavigateToPrivacy();
+              }}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: colors.info + '20' }]}>
+                <FontAwesome5 name="shield-alt" size={14} color={colors.info} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, { color: colors.text }]}>Privacy Policy</Text>
+                <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  How we collect, use, and protect your data
+                </Text>
+              </View>
+            </TouchableOpacity>
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
-            <View style={styles.legalButtonContainer}>
-              <Button
-                title="Terms of Service"
-                variant="outline"
-                onPress={() => {
-                  feedback.navigate();
-                  handleNavigateToTerms();
-                }}
-                style={styles.legalButton}
-              />
-              <Text style={[styles.legalHint, { color: colors.textSecondary }]}>
-                Terms and conditions for using our app
-              </Text>
-            </View>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                feedback.navigate();
+                handleNavigateToTerms();
+              }}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: colors.warning + '20' }]}>
+                <FontAwesome5 name="file-contract" size={14} color={colors.warning} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, { color: colors.text }]}>Terms of Service</Text>
+                <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  Terms and conditions for using our app
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -270,6 +276,45 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     letterSpacing: 0.3,
   },
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    ...(Platform.OS === 'ios' ? {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+    } : {
+      elevation: 3,
+    }),
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    minHeight: 56,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  optionContent: {
+    flex: 1,
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  optionSubtext: {
+    fontSize: 13,
+    opacity: 0.8,
+  },
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -343,25 +388,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
-  legalCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  legalButtonContainer: {
-    padding: 16,
-  },
-  legalButton: {
-    marginBottom: 8,
-  },
-  legalHint: {
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: 'center',
-  },
+
   divider: {
     height: 1,
-    marginLeft: 64,
+    marginLeft: 72,
+    marginRight: 16,
   },
   contactCard: {
     borderRadius: 16,
