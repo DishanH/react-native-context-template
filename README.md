@@ -505,15 +505,10 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ## 📞 Support & Community
 
 ### Get Help
-- 📧 **Email**: support@react-native-context-template.dev
-- 💬 **Discord**: [Join our community](https://discord.gg/react-native-context-template)
+- 📧 **Email**: oracle@outlook.com
 - 📖 **Documentation**: [Full docs](https://docs.react-native-context-template.dev)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/react-native-community/react-native-context-template/issues)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/dishanh/react-native-context-template/issues)
 
-### Stay Updated
-- 🐦 **Twitter**: [@RNContextTemplate](https://twitter.com/rncontexttemplate)
-- 📝 **Blog**: [dev.react-native-context-template.dev](https://dev.react-native-context-template.dev)
-- 📺 **YouTube**: [RN Context Template Channel](https://youtube.com/@rncontexttemplate)
 
 ## 📄 License
 
@@ -527,6 +522,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the React Native Context Template Team**
+**Made with ❤️ by Dishan Hewage**
 
-[⭐ Star us on GitHub](https://github.com/react-native-community/react-native-context-template) | [🚀 Deploy Now](https://react-native-context-template.dev/deploy) | [📖 Read the Docs](https://docs.react-native-context-template.dev) 
+[⭐ Star us on GitHub](https://github.com/dishanh/react-native-context-template) | [🚀 Deploy Now](https://react-native-context-template.dev/deploy) | [📖 Read the Docs](https://docs.react-native-context-template.dev) 
