@@ -115,14 +115,17 @@ A comprehensive, production-ready React Native template built with Expo. Feature
    cd MyApp
    ```
 
-2. **Run the setup script to configure your project**:
+2. **Clean up template files (Important!)**:
    ```bash
-   npm run setup-template
+   npm run clean-template
    ```
    This will:
-   - Configure your app name, package name, and bundle ID
-   - Update README and configuration files
-   - Keep demo screens and examples for learning and customization
+   - Remove template-specific files (CHANGELOG.md, .templateignore, etc.)
+   - Update package.json and app.json with generic project settings
+   - Create a clean README for your project
+   - Remove demo content (optional - keep for learning)
+
+   > **Note**: If you see template files like `CHANGELOG.md` in your new project, run this cleanup script. Different template creation tools handle file exclusions differently.
 
 3. **Install dependencies**:
    ```bash

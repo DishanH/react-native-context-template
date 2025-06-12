@@ -13,6 +13,7 @@ CHANGELOG.md
 # Development and template notes
 docs/template-notes.md
 docs/development-log.md
+docs/template-usage.md
 
 # Template README (users should customize their own README)
 # Note: The main README.md will be included but users should customize it
@@ -40,4 +41,23 @@ assets/icons/demo/
 
 # Example data files
 lib/demo-data.ts
-lib/sample-data.ts 
+lib/sample-data.ts
+
+# Template specific files that shouldn't be in user projects
+.git/
+.github/
+node_modules/
+*.log
+.DS_Store
+.env.local
+.env.development
+.env.production
+
+# NPM package files for template distribution
+*.tgz
+package-lock.json
+yarn.lock
+
+# Template metadata
+template.json
+template.config.json 

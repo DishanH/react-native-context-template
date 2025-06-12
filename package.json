@@ -7,6 +7,7 @@
     "start": "expo start",
     "setup-template": "node ./scripts/setup-template.js",
     "reset-project": "node ./scripts/reset-project.js",
+    "clean-template": "node ./scripts/clean-template.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
