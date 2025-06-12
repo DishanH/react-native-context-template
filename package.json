@@ -1,8 +1,8 @@
 {
-  "name": "react-native-template-with-context",
+  "name": "react-native-context-template",
   "main": "expo-router/entry",
   "version": "1.0.0",
-  "description": "A production-ready React Native template with authentication, theming, navigation, and persistent storage using React Context",
+  "description": "A comprehensive, production-ready React Native template with advanced authentication, theming, navigation, and robust Context-based state management",
   "scripts": {
     "start": "expo start",
     "setup-template": "node ./scripts/setup-template.js",
@@ -10,7 +10,22 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "build:web": "expo export -p web",
+    "build:ios": "eas build --platform ios",
+    "build:android": "eas build --platform android",
+    "build:all": "eas build --platform all",
+    "submit:ios": "eas submit --platform ios",
+    "submit:android": "eas submit --platform android",
+    "submit:all": "eas submit --platform all",
+    "lint": "expo lint",
+    "lint:fix": "expo lint --fix",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "clean": "expo r -c",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -63,24 +78,53 @@
     "react-native",
     "expo",
     "template",
+    "context",
+    "context-api",
+    "state-management",
     "authentication",
     "navigation",
     "typescript",
     "theme",
-    "context",
     "boilerplate",
     "starter",
     "onboarding",
-    "secure-storage"
+    "secure-storage",
+    "production-ready",
+    "cross-platform",
+    "mobile-app",
+    "web-app",
+    "pwa",
+    "biometric-auth",
+    "social-login",
+    "dark-mode",
+    "accessibility",
+    "performance",
+    "security",
+    "drawer-navigation",
+    "tab-navigation",
+    "file-based-routing"
   ],
   "license": "MIT",
-  "author": "Your Name",
+  "author": {
+    "name": "React Native Context Template Team",
+    "email": "support@react-native-context-template.dev",
+    "url": "https://react-native-context-template.dev"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/react-native-template-with-context.git"
+    "url": "https://github.com/react-native-community/react-native-context-template.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/react-native-template-with-context/issues"
+    "url": "https://github.com/react-native-community/react-native-context-template/issues"
   },
-  "homepage": "https://github.com/yourusername/react-native-template-with-context#readme"
+  "homepage": "https://github.com/react-native-community/react-native-context-template#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "expo": {
+    "install": {
+      "exclude": ["react-native-safe-area-context"]
+    }
+  }
 }

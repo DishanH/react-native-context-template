@@ -1,20 +1,37 @@
 {
   "expo": {
-    "name": "React Native Template",
-    "slug": "react-native-template-with-context",
+    "name": "React Native Context Template",
+    "slug": "react-native-context-template",
     "version": "1.0.0",
-    "description": "A production-ready React Native template with authentication, theming, navigation, and persistent storage using React Context",
+    "description": "A comprehensive, production-ready React Native template featuring advanced authentication, theming, navigation, and robust Context-based state management patterns.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "reactnativetemplate",
+    "scheme": "rn-context-template",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "primaryColor": "#6366F1",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.template.reactnative",
+      "bundleIdentifier": "com.rncontexttemplate.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "UIViewControllerBasedStatusBarAppearance": false
-      }
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "CFBundleDisplayName": "RN Context Template",
+        "NSCameraUsageDescription": "This app uses the camera to capture photos for profile pictures and image sharing.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone for voice input and audio recording features.",
+        "NSFaceIDUsageDescription": "Use Face ID to securely authenticate and access your account.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": ["applinks:react-native-context-template.dev"],
+      "appStoreUrl": "https://apps.apple.com/app/react-native-context-template/id123456789"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,12 +39,51 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.template.reactnative"
+      "package": "com.rncontexttemplate.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "react-native-context-template.dev"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.rncontexttemplate.app"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "React Native Context Template - Production Ready Starter",
+      "shortName": "RN Context Template",
+      "lang": "en",
+      "scope": "/",
+      "themeColor": "#6366F1",
+      "backgroundColor": "#ffffff",
+      "display": "standalone",
+      "startUrl": "/",
+      "orientation": "portrait-primary",
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "default",
+        "apple-mobile-web-app-title": "RN Context Template",
+        "description": "A comprehensive React Native template with Context-based state management, authentication, theming, and navigation. Perfect for building production-ready mobile apps.",
+        "keywords": "react native, context api, template, authentication, navigation, typescript, mobile app, starter kit"
+      }
     },
     "plugins": [
       "expo-router",
@@ -40,10 +96,34 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/Inter-Regular.ttf", "./assets/fonts/Inter-Medium.ttf", "./assets/fonts/Inter-Bold.ttf"]
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share images and set profile pictures.",
+          "cameraPermission": "The app accesses your camera to let you take photos for profile pictures and image sharing."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/your-project-id-here"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

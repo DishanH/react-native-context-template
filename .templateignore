@@ -1,0 +1,43 @@
+# Template Ignore File
+# Files and directories listed here will be excluded when creating a new project from this template
+
+# Template-specific configuration files
+template.config.js
+scripts/setup-template.js
+scripts/reset-project.js
+
+# Template documentation files
+CHANGELOG.md
+.templateignore
+
+# Development and template notes
+docs/template-notes.md
+docs/development-log.md
+
+# Template README (users should customize their own README)
+# Note: The main README.md will be included but users should customize it
+
+# Demo/Example screens that users should replace
+app/tabs/index.tsx
+app/tabs/add-expense.tsx  
+app/tabs/add-member.tsx
+app/tabs/settle.tsx
+
+# Example feature screens
+app/activity.tsx
+app/groups.tsx
+app/storage-data.tsx
+app/subscription.tsx
+
+# Demo content in features (keep folder structure but remove demo content)
+app/features/activity/
+app/features/groups/
+app/features/subscription/
+
+# Demo assets (if any)
+assets/images/demo/
+assets/icons/demo/
+
+# Example data files
+lib/demo-data.ts
+lib/sample-data.ts 
