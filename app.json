@@ -30,7 +30,9 @@
         "NSFaceIDUsageDescription": "Use Face ID to securely authenticate and access your account.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "associatedDomains": ["applinks:react-native-context-template.dev"],
+      "associatedDomains": [
+        "applinks:react-native-context-template.dev"
+      ],
       "appStoreUrl": "https://apps.apple.com/app/react-native-context-template/id123456789"
     },
     "android": {
@@ -59,7 +61,10 @@
               "host": "react-native-context-template.dev"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "playStoreUrl": "https://play.google.com/store/apps/details?id=com.rncontexttemplate.app"
@@ -100,7 +105,11 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Inter-Regular.ttf", "./assets/fonts/Inter-Medium.ttf", "./assets/fonts/Inter-Bold.ttf"]
+          "fonts": [
+            "./assets/fonts/Inter-Regular.ttf",
+            "./assets/fonts/Inter-Medium.ttf",
+            "./assets/fonts/Inter-Bold.ttf"
+          ]
         }
       ],
       [
@@ -109,7 +118,8 @@
           "photosPermission": "The app accesses your photos to let you share images and set profile pictures.",
           "cameraPermission": "The app accesses your camera to let you take photos for profile pictures and image sharing."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
