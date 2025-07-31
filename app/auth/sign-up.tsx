@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -13,8 +12,8 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../contexts';
-import { useTheme } from '../../contexts';
+import Button from '../../src/shared/components/ui/Button';
+import { useAuth, useTheme } from '../../contexts';
 
 const SignUpScreen = () => {
   const { colors } = useTheme();
@@ -146,21 +145,15 @@ const SignUpScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { backgroundColor: colors.primary }
-              ]}
+            {/* Sign Up Button - Using semantic variant */}
+            <Button
+              title="Create Account"
+              variant="primary"
               onPress={handleSignUp}
               disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Create Account</Text>
-              )}
-            </TouchableOpacity>
+              loading={isLoading}
+              style={styles.button}
+            />
 
             {/* Divider */}
             <View style={styles.divider}>

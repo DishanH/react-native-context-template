@@ -92,7 +92,12 @@ class DatabaseManager {
           auth: {
             autoRefreshToken: true,
             persistSession: true,
-            detectSessionInUrl: false,
+            detectSessionInUrl: Platform.OS === 'web',
+            storage: Platform.OS === 'web' ? undefined : {
+              getItem: (key) => storage.get(key, false),
+              setItem: (key, value) => storage.set(key, value),
+              removeItem: (key) => storage.remove(key),
+            },
           },
           realtime: {
             params: {
@@ -461,6 +466,89 @@ class DatabaseManager {
         callback
       )
       .subscribe();
+  }
+
+  /**
+   * Authentication methods
+   */
+  async signInWithEmail(email: string, password: string) {
+    if (!this.supabase) {
+      throw new Error('Supabase not initialized');
+    }
+
+    const { data, error } = await this.supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    console.log('signInWithEmail', data, error);
+
+    if (error) throw error;
+    return data;
+  }
+
+  async signUpWithEmail(email: string, password: string, name: string) {
+    if (!this.supabase) {
+      throw new Error('Supabase not initialized');
+    }
+
+    const { data, error } = await this.supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
+      },
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
+  async signInWithProvider(provider: 'google' | 'apple') {
+    if (!this.supabase) {
+      throw new Error('Supabase not initialized');
+    }
+
+    // Get redirect URL safely for web
+    const getRedirectUrl = () => {
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.location && window.location.origin) {
+          return `${window.location.origin}/auth/callback`;
+        }
+        // Fallback for web if window.location.origin is not available
+        return 'http://localhost:8081/auth/callback';
+      }
+      return 'rn-context-template://auth/callback';
+    };
+
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: getRedirectUrl(),
+      },
+    });
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getSession() {
+    if (!this.supabase) {
+      return null;
+    }
+
+    const { data: { session } } = await this.supabase.auth.getSession();
+    return session;
+  }
+
+  onAuthStateChange(callback: (event: string, session: any) => void) {
+    if (!this.supabase) {
+      return { data: { subscription: null } };
+    }
+
+    return this.supabase.auth.onAuthStateChange(callback);
   }
 
   /**

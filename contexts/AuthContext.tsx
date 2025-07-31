@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import * as React from "react";
 import { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { database } from '../lib/database';
 
 /**
  * User type definition
@@ -12,6 +13,8 @@ export type User = {
   email: string;
   name: string;
   isAuthenticated: boolean;
+  avatar_url?: string;
+  supabaseUser?: any; // Store Supabase user object for additional data
 };
 
 /**
@@ -54,25 +57,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * Load user data from storage on app initialization
-   * Runs once when the provider mounts
+   * Initialize auth state and listen for changes
    */
   useEffect(() => {
-    const loadUser = async () => {
+    const initializeAuth = async () => {
       try {
-        // Try to get stored user data
-        const storedUser = await storage.get(USER_STORAGE_KEY, true);
-        if (storedUser && storedUser.isAuthenticated) {
-          setUser(storedUser);
+        // Check for existing Supabase session
+        const session = await database.getSession();
+        
+        if (session?.user) {
+          // Create user object from Supabase session
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            isAuthenticated: true,
+            avatar_url: session.user.user_metadata?.avatar_url,
+            supabaseUser: session.user,
+          };
+          
+          setUser(userData);
+          await storage.set(USER_STORAGE_KEY, userData);
+          await storage.setAuthStatus(true);
+        } else {
+          // Try to get stored user data as fallback
+          const storedUser = await storage.get(USER_STORAGE_KEY, true);
+          if (storedUser && storedUser.isAuthenticated) {
+            setUser(storedUser);
+          }
         }
       } catch (error) {
-        console.error('Failed to load user from storage:', error);
+        console.error('Failed to initialize auth:', error);
+        // Fallback to stored user data
+        try {
+          const storedUser = await storage.get(USER_STORAGE_KEY, true);
+          if (storedUser && storedUser.isAuthenticated) {
+            setUser(storedUser);
+          }
+        } catch (storageError) {
+          console.error('Failed to load user from storage:', storageError);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadUser();
+    // Listen for auth state changes
+    const { data: { subscription } } = database.onAuthStateChange(async (event, session) => {
+  
+      if (event === 'SIGNED_IN' && session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          isAuthenticated: true,
+          avatar_url: session.user.user_metadata?.avatar_url,
+          supabaseUser: session.user,
+        };
+
+        setUser(userData);
+        await storage.set(USER_STORAGE_KEY, userData);
+        await storage.setAuthStatus(true);
+        // Navigate to main app
+        router.replace('/tabs' as any);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        await storage.remove(USER_STORAGE_KEY);
+        await storage.setAuthStatus(false);
+      }
+    });
+
+    initializeAuth();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   /**
@@ -103,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, isLoading]);
 
   /**
-   * Sign in with email and password
+   * Sign in with email and password using Supabase
    * 
    * @param email - User's email address
    * @param password - User's password
@@ -113,24 +173,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { user: supabaseUser, session } = await database.signInWithEmail(email, password);
       
-      // In a real app, you would validate credentials with your backend
-      // For demo purposes, we'll create a dummy user
-      const newUser: User = {
-        id: Date.now().toString(),
-        email,
-        name: email.split('@')[0], // Use email prefix as name
-        isAuthenticated: true
-      };
+      if (supabaseUser && session) {
+        // User object will be set via auth state change listener
+        return true;
+      }
       
-      setUser(newUser);
-      
-      // Navigate to the main app
-      router.replace('/tabs' as any);
-      return true;
-      
+      return false;
     } catch (error) {
       console.error('Sign in error:', error);
       return false;
@@ -140,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Sign up with name, email and password
+   * Sign up with name, email and password using Supabase
    * 
    * @param name - User's full name
    * @param email - User's email address
@@ -151,24 +201,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { user: supabaseUser, session } = await database.signUpWithEmail(email, password, name);
       
-      // In a real app, you would register the user with your backend
-      // For demo purposes, we'll create a dummy user
-      const newUser: User = {
-        id: Date.now().toString(),
-        email,
-        name,
-        isAuthenticated: true
-      };
+      if (supabaseUser) {
+        // For email signup, user might need to verify email
+        if (session) {
+          // User is immediately signed in (auto-confirm enabled)
+          return true;
+        } else {
+          // User needs to verify email
+          // You might want to show a message to check email
+          console.log('Please check your email to verify your account');
+          return true;
+        }
+      }
       
-      setUser(newUser);
-      
-      // Navigate to the main app
-      router.replace('/tabs' as any);
-      return true;
-      
+      return false;
     } catch (error) {
       console.error('Sign up error:', error);
       return false;
@@ -178,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Sign in with social providers (Google, Apple)
+   * Sign in with social providers (Google, Apple) using Supabase
    * 
    * @param provider - Social provider ('google' | 'apple')
    * @returns Promise<boolean> - true if successful, false otherwise
@@ -187,22 +235,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await database.signInWithProvider(provider);
       
-      // In a real app, you would integrate with Google/Apple auth SDKs
-      // For demo purposes, we'll create a dummy user
-      const newUser: User = {
-        id: Date.now().toString(),
-        email: `user_${Date.now()}@${provider}.com`,
-        name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
-        isAuthenticated: true
-      };
-      
-      setUser(newUser);
-      
-      // Navigate to the main app
-      router.replace('/tabs' as any);
+      // For web OAuth, this will redirect to the provider
+      // The auth state change will handle the user login after redirect
+      console.log('OAuth redirect initiated for:', provider);
       return true;
       
     } catch (error) {
@@ -214,21 +251,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Sign out the current user
+   * Sign out the current user using Supabase
    * Clears all user data and navigates to sign-in screen
    */
   const signOut = async (): Promise<void> => {
     setIsLoading(true);
     
     try {
-      // Clear user state first
-      setUser(null);
-      
-      // Let the useEffect in RootNavigator handle the navigation
-      // based on the updated authentication state
-      
+      await database.signOut();
+      // User state will be cleared via auth state change listener
     } catch (error) {
       console.error('Sign out error:', error);
+      // Fallback: clear user state manually
+      setUser(null);
+      await storage.remove(USER_STORAGE_KEY);
+      await storage.setAuthStatus(false);
     } finally {
       setIsLoading(false);
     }
