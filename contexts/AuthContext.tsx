@@ -13,6 +13,24 @@ import type { AppUser, Profile } from '../types/database';
 export type User = AppUser;
 
 /**
+ * Authentication error types
+ */
+export type AuthError = {
+  type: 'email_not_confirmed' | 'invalid_credentials' | 'user_not_found' | 'email_already_exists' | 'weak_password' | 'rate_limit' | 'generic';
+  message: string;
+  originalError?: any;
+};
+
+/**
+ * Authentication result type
+ */
+export type AuthResult = {
+  success: boolean;
+  error?: AuthError;
+  needsEmailVerification?: boolean;
+};
+
+/**
  * Authentication context type definition
  * Defines all available authentication methods and state
  */
@@ -22,11 +40,18 @@ type AuthContextType = {
   profile: Profile | null;
   isLoading: boolean;
   
-  // Authentication methods
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (name: string, email: string, password: string) => Promise<boolean>;
+  // Authentication error state
+  authError: AuthError | null;
+  setAuthError: (error: AuthError | null) => void;
+  
+  // Authentication methods with enhanced error handling
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (name: string, email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   socialSignIn: (provider: 'google' | 'apple') => Promise<boolean>;
+  
+  // Email verification methods
+  resendVerificationEmail: (email: string) => Promise<boolean>;
   
   // Profile methods
   updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
@@ -44,6 +69,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const USER_STORAGE_KEY = 'user_data';
 
 /**
+ * Parse Supabase authentication errors into user-friendly messages
+ */
+const parseAuthError = (error: any): AuthError => {
+  const errorMessage = error?.message?.toLowerCase() || '';
+  if (errorMessage.includes('email not confirmed') || errorMessage.includes('email_not_confirmed')) {
+    return {
+      type: 'email_not_confirmed',
+      message: 'Please check your email and click the verification link before signing in.',
+      originalError: error,
+    };
+  }
+  
+  if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid_credentials')) {
+    return {
+      type: 'invalid_credentials',
+      message: 'Invalid email or password. Please try again.',
+      originalError: error,
+    };
+  }
+  
+  if (errorMessage.includes('user not found') || errorMessage.includes('user_not_found')) {
+    return {
+      type: 'user_not_found',
+      message: 'No account found with this email address.',
+      originalError: error,
+    };
+  }
+  
+  if (errorMessage.includes('user already registered') || errorMessage.includes('email_already_exists')) {
+    return {
+      type: 'email_already_exists',
+      message: 'An account with this email already exists. Please sign in instead.',
+      originalError: error,
+    };
+  }
+  
+  if (errorMessage.includes('password') && (errorMessage.includes('weak') || errorMessage.includes('short'))) {
+    return {
+      type: 'weak_password',
+      message: 'Password must be at least 6 characters long.',
+      originalError: error,
+    };
+  }
+  
+  if (errorMessage.includes('rate limit') || errorMessage.includes('too many requests')) {
+    return {
+      type: 'rate_limit',
+      message: 'Too many attempts. Please wait a moment before trying again.',
+      originalError: error,
+    };
+  }
+  
+  return {
+    type: 'generic',
+    message: 'An unexpected error occurred. Please try again.',
+    originalError: error,
+  };
+};
+
+/**
  * Authentication Provider Component
  * Manages user authentication state and provides auth methods to children
  * 
@@ -57,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [authError, setAuthError] = useState<AuthError | null>(null);
 
   /**
    * Convert Supabase user to app user format and handle storage
@@ -159,9 +245,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * 
    * @param email - User's email address
    * @param password - User's password
-   * @returns Promise<boolean> - true if successful, false otherwise
+   * @returns Promise<AuthResult> - Authentication result with detailed error info
    */
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const signIn = async (email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     
     try {
@@ -169,13 +255,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (supabaseUser && session) {
         // User object will be set via auth state change listener
-        return true;
+        return { success: true };
       }
       
-      return false;
+      return { 
+        success: false, 
+        error: {
+          type: 'generic',
+          message: 'Authentication failed. Please try again.',
+        }
+      };
     } catch (error) {
-      console.error('Sign in error:', error);
-      return false;
+      const authError = parseAuthError(error);
+      return { 
+        success: false, 
+        error: authError 
+      };
     } finally {
       setIsLoading(false);
     }
@@ -187,9 +282,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * @param name - User's full name
    * @param email - User's email address
    * @param password - User's password
-   * @returns Promise<boolean> - true if successful, false otherwise
+   * @returns Promise<AuthResult> - Authentication result with detailed error info
    */
-  const signUp = async (name: string, email: string, password: string): Promise<boolean> => {
+  const signUp = async (name: string, email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     
     try {
@@ -207,19 +302,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session) {
           // User is immediately signed in (auto-confirm enabled)
           console.log('User signed up and signed in automatically');
-          return true;
+          return { success: true };
         } else {
           // User needs to verify email
           console.log('User created but needs email verification');
-          return true;
+          return { 
+            success: true, 
+            needsEmailVerification: true 
+          };
         }
       }
       
       console.log('No Supabase user returned from signup');
-      return false;
+      return { 
+        success: false, 
+        error: {
+          type: 'generic',
+          message: 'Failed to create account. Please try again.',
+        }
+      };
     } catch (error) {
       console.error('Sign up error:', error);
-      return false;
+      const authError = parseAuthError(error);
+      return { 
+        success: false, 
+        error: authError 
+      };
     } finally {
       setIsLoading(false);
     }
@@ -279,6 +387,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
+   * Resend email verification for a given email address
+   * 
+   * @param email - User's email address
+   * @returns Promise<boolean> - true if email was sent successfully
+   */
+  const resendVerificationEmail = async (email: string): Promise<boolean> => {
+    try {
+      const supabaseClient = database.getSupabaseClient();
+      if (!supabaseClient) {
+        console.error('Supabase client not available');
+        return false;
+      }
+
+      const { error } = await supabaseClient.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) {
+        console.error('Failed to resend verification email:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to resend verification email:', error);
+      return false;
+    }
+  };
+
+  /**
    * Update user profile
    */
   const updateProfile = async (updates: Partial<Profile>): Promise<boolean> => {
@@ -322,10 +461,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     profile,
     isLoading,
+    authError,
+    setAuthError,
     signIn,
     signUp,
     signOut,
     socialSignIn,
+    resendVerificationEmail,
     updateProfile
   };
 

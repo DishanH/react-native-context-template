@@ -9,34 +9,56 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import Button from '../../src/shared/components/ui/Button';
 import { SocialAuthButtons } from '../../components/auth/SocialAuthButtons';
+import AuthErrorCard from '../../components/auth/AuthErrorCard';
 import { useAuth, useTheme } from '../../contexts';
+import { AuthError } from '../../contexts/AuthContext';
 
 const SignUpScreen = () => {
   const { colors } = useTheme();
-  const { signUp, isLoading } = useAuth();
+  const { signUp, isLoading, resendVerificationEmail } = useAuth();
   
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [authError, setAuthError] = useState<AuthError | null>(null);
 
   const handleSignUp = async () => {
     if (!fullName || !email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setAuthError({
+        type: 'generic',
+        message: 'Please fill in all fields'
+      });
       return;
     }
     
-    const success = await signUp(fullName, email, password);
+    // Clear previous errors
+    setAuthError(null);
     
-    if (!success) {
-      Alert.alert('Error', 'Failed to create account. Please try again.');
+    const result = await signUp(fullName, email, password);
+    
+    if (result.success) {
+      if (result.needsEmailVerification) {
+        // Navigate to email verification screen
+        router.replace(`/auth/email-verification?email=${encodeURIComponent(email)}`);
+      } else {
+        // User is automatically signed in
+        Toast.show({
+          type: 'success',
+          text1: 'Welcome!',
+          text2: 'Your account has been created successfully',
+        });
+      }
+    } else if (result.error) {
+      setAuthError(result.error);
     }
-    // Navigation is handled automatically in the auth context
   };
 
   const handleSocialAuthComplete = (success: boolean) => {
@@ -54,12 +76,52 @@ const SignUpScreen = () => {
     router.back();
   };
 
+  const handleRetrySignUp = () => {
+    setAuthError(null);
+  };
+
+  const handleCloseError = () => {
+    setAuthError(null);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoid}
       >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Auth Error Card */}
+          {authError && (
+            <AuthErrorCard
+              error={authError}
+              email={authError.type === 'email_not_confirmed' ? email : undefined}
+              onRetry={handleRetrySignUp}
+              onResendVerification={authError.type === 'email_not_confirmed' ? async () => {
+                const success = await resendVerificationEmail(email);
+                if (success) {
+                  Toast.show({
+                    type: 'success',
+                    text1: 'Email sent!',
+                    text2: 'Please check your inbox for the verification link',
+                  });
+                } else {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Failed to send email',
+                    text2: 'Please try again later',
+                  });
+                }
+              } : undefined}
+              onClose={handleCloseError}
+              showCloseButton={true}
+            />
+          )}
+
         <View style={styles.content}>
           {/* Header Section */}
           <View style={styles.header}>
@@ -184,6 +246,7 @@ const SignUpScreen = () => {
             By signing up, you agree to our Terms of Service and Privacy Policy
           </Text>
         </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -195,6 +258,9 @@ const styles = StyleSheet.create({
   },
   keyboardAvoid: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   content: {
     flex: 1,
