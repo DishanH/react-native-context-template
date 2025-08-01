@@ -14,8 +14,16 @@ export function CustomDrawerContent(props: any) {
   const handleSignOut = async () => {
     feedback.buttonPress();
     feedback.info('Signing Out', 'See you soon!');
-    await signOut();
-    // Navigation will be handled automatically by auth state change
+    
+    // Close the drawer first to prevent navigation conflicts
+    props.navigation.closeDrawer();
+    
+    // Sign out and let the auth state change handle navigation
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
 
   return (

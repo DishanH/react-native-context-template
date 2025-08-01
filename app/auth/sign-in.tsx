@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -14,12 +13,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../src/shared/components/ui/Button';
-import { useAuth } from '../../contexts';
-import { useTheme } from '../../contexts';
+import { SocialAuthButtons } from '../../components/auth/SocialAuthButtons';
+import { useAuth, useTheme } from '../../contexts';
 
 const SignInScreen = () => {
   const { colors } = useTheme();
-  const { signIn, socialSignIn, isLoading } = useAuth();
+  const { signIn, isLoading } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,11 +38,9 @@ const SignInScreen = () => {
     // Navigation is handled automatically in the auth context
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'apple') => {
-    const success = await socialSignIn(provider);
-    
+  const handleSocialAuthComplete = (success: boolean) => {
     if (!success) {
-      Alert.alert('Error', `Failed to sign in with ${provider}. Please try again.`);
+      Alert.alert('Error', 'Failed to sign in. Please try again.');
     }
     // Navigation is handled automatically in the auth context
   };
@@ -153,51 +150,7 @@ const SignInScreen = () => {
             </View>
 
             {/* Social Sign In Buttons */}
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                { 
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1
-                }
-              ]}
-              onPress={() => handleSocialSignIn('google')}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-google" size={20} color="#EA4335" />
-              <Text
-                style={[
-                  styles.socialButtonText,
-                  { color: colors.text }
-                ]}
-              >
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                { 
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1
-                }
-              ]}
-              onPress={() => handleSocialSignIn('apple')}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-apple" size={22} color={colors.text} />
-              <Text
-                style={[
-                  styles.socialButtonText,
-                  { color: colors.text }
-                ]}
-              >
-                Continue with Apple
-              </Text>
-            </TouchableOpacity>
+            <SocialAuthButtons onAuthComplete={handleSocialAuthComplete} />
           </View>
 
           {/* Footer Section */}
@@ -311,19 +264,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     opacity: 0.5,
   },
-  socialButton: {
-    flexDirection: 'row',
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  socialButtonText: {
-    fontWeight: '500',
-    marginLeft: 12,
-    fontSize: 16,
-  },
+
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',

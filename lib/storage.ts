@@ -6,7 +6,6 @@ const STORAGE_KEYS = {
   IS_AUTHENTICATED: 'isAuthenticated',
   ONBOARDING_COMPLETE: 'onboardingComplete',
   USER_DATA: 'userData',
-  THEME: 'theme',
   USER_PREFERENCES: 'userPreferences',
   // Keys registry for SecureStore
   ALL_SECURE_STORE_KEYS: 'all_secure_store_keys',
@@ -282,25 +281,7 @@ export const storage = {
     }
   },
 
-  // Get theme preference
-  async getTheme(): Promise<'light' | 'dark' | null> {
-    try {
-      const value = await StorageHelper.getItem(STORAGE_KEYS.THEME);
-      return value as 'light' | 'dark' | null;
-    } catch (error) {
-      console.error('Error getting theme:', error);
-      return null;
-    }
-  },
 
-  // Set theme preference
-  async setTheme(theme: 'light' | 'dark'): Promise<void> {
-    try {
-      await StorageHelper.setItem(STORAGE_KEYS.THEME, theme);
-    } catch (error) {
-      console.error('Error setting theme:', error);
-    }
-  },
 
   // Get user data
   async getUserData(): Promise<any> {

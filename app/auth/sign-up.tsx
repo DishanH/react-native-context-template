@@ -13,11 +13,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../src/shared/components/ui/Button';
+import { SocialAuthButtons } from '../../components/auth/SocialAuthButtons';
 import { useAuth, useTheme } from '../../contexts';
 
 const SignUpScreen = () => {
   const { colors } = useTheme();
-  const { signUp, socialSignIn, isLoading } = useAuth();
+  const { signUp, isLoading } = useAuth();
   
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,11 +39,9 @@ const SignUpScreen = () => {
     // Navigation is handled automatically in the auth context
   };
 
-  const handleSocialSignUp = async (provider: 'google' | 'apple') => {
-    const success = await socialSignIn(provider);
-    
+  const handleSocialAuthComplete = (success: boolean) => {
     if (!success) {
-      Alert.alert('Error', `Failed to sign up with ${provider}. Please try again.`);
+      Alert.alert('Error', 'Failed to sign up. Please try again.');
     }
     // Navigation is handled automatically in the auth context
   };
@@ -165,51 +164,7 @@ const SignUpScreen = () => {
             </View>
 
             {/* Social Sign Up Buttons */}
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                { 
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1
-                }
-              ]}
-              onPress={() => handleSocialSignUp('google')}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-google" size={20} color="#EA4335" />
-              <Text
-                style={[
-                  styles.socialButtonText,
-                  { color: colors.text }
-                ]}
-              >
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                { 
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  borderWidth: 1
-                }
-              ]}
-              onPress={() => handleSocialSignUp('apple')}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-apple" size={22} color={colors.text} />
-              <Text
-                style={[
-                  styles.socialButtonText,
-                  { color: colors.text }
-                ]}
-              >
-                Continue with Apple
-              </Text>
-            </TouchableOpacity>
+            <SocialAuthButtons onAuthComplete={handleSocialAuthComplete} />
           </View>
 
           {/* Footer Section */}
@@ -319,19 +274,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     opacity: 0.5,
   },
-  socialButton: {
-    flexDirection: 'row',
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  socialButtonText: {
-    fontWeight: '500',
-    marginLeft: 12,
-    fontSize: 16,
-  },
+
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',

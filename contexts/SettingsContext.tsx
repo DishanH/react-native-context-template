@@ -1,37 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { database } from '../lib/database';
+import { useAuth } from './AuthContext';
+import type { UserPreferencesData } from '../types/database';
 
-// Define the shape of user preferences
-type UserPreferences = {
-  notifications: {
-    push: boolean;
-    email: boolean;
-    sms: boolean;
-    marketing: boolean;
-  };
-  privacy: {
-    analytics: boolean;
-    crashReporting: boolean;
-    dataSharing: boolean;
-  };
-  accessibility: {
-    fontSize: 'small' | 'medium' | 'large' | 'extra-large';
-    highContrast: boolean;
-    reduceMotion: boolean;
-    voiceOver: boolean;
-  };
-  language: string;
-  region: string;
-  currency: string;
-  autoLock: boolean;
-  biometricAuth: boolean;
-};
+// Use the database type for user preferences
+type UserPreferences = UserPreferencesData;
 
 // Define the shape of the settings context
 type SettingsContextType = {
   // User preferences
   preferences: UserPreferences;
   isLoading: boolean;
+  
+  // Theme settings
+  updateTheme: (theme: UserPreferences['theme']) => Promise<void>;
   
   // Notification settings
   updateNotificationSettings: (notifications: Partial<UserPreferences['notifications']>) => Promise<void>;
@@ -57,6 +40,7 @@ type SettingsContextType = {
 
 // Default preferences
 const defaultPreferences: UserPreferences = {
+  theme: 'system',
   notifications: {
     push: true,
     email: true,
@@ -85,6 +69,7 @@ const defaultPreferences: UserPreferences = {
 const SettingsContext = createContext<SettingsContextType>({
   preferences: defaultPreferences,
   isLoading: false,
+  updateTheme: async () => {},
   updateNotificationSettings: async () => {},
   updatePrivacySettings: async () => {},
   updateAccessibilitySettings: async () => {},
@@ -103,35 +88,74 @@ export const useSettings = () => useContext(SettingsContext);
 
 // Provider component to wrap the app
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load preferences on mount
+  // Load preferences from database
   useEffect(() => {
     const loadPreferences = async () => {
+      if (!user?.isAuthenticated || !user?.id) {
+        setPreferences(defaultPreferences);
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const savedPreferences = await storage.getUserPreferences();
-        if (savedPreferences) {
-          setPreferences({ ...defaultPreferences, ...savedPreferences });
+        const response = await database.getUserPreferences(user.id);
+        
+        if (response.success && response.data) {
+          setPreferences({ ...defaultPreferences, ...response.data });
+        } else {
+          // Fallback to local storage
+          const savedPreferences = await storage.getUserPreferences();
+          if (savedPreferences) {
+            setPreferences({ ...defaultPreferences, ...savedPreferences });
+          } else {
+            setPreferences(defaultPreferences);
+          }
         }
       } catch (error) {
         console.error('Error loading preferences:', error);
-        setPreferences(defaultPreferences);
+        // Try local storage as fallback
+        const savedPreferences = await storage.getUserPreferences();
+        if (savedPreferences) {
+          setPreferences({ ...defaultPreferences, ...savedPreferences });
+        } else {
+          setPreferences(defaultPreferences);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     loadPreferences();
-  }, []);
+  }, [user]);
 
-  // Save preferences to storage
+  // Save preferences to database and storage
   const savePreferences = async (updatedPreferences: UserPreferences) => {
+    if (!user?.id) {
+      console.error('No user ID available for saving preferences');
+      return;
+    }
+
     try {
-      await storage.setUserPreferences(updatedPreferences);
-      setPreferences(updatedPreferences);
+      const response = await database.updateUserPreferences(user.id, updatedPreferences);
+      
+      if (response.success) {
+        await storage.setUserPreferences(updatedPreferences);
+        setPreferences(updatedPreferences);
+      } else {
+        console.error('Failed to save preferences to database');
+        // Still save locally as fallback
+        await storage.setUserPreferences(updatedPreferences);
+        setPreferences(updatedPreferences);
+      }
     } catch (error) {
       console.error('Error saving preferences:', error);
+      // Fallback to local storage
+      await storage.setUserPreferences(updatedPreferences);
+      setPreferences(updatedPreferences);
     }
   };
 
@@ -192,6 +216,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await savePreferences(updatedPreferences);
   };
 
+  // Update theme
+  const updateTheme = async (theme: UserPreferences['theme']) => {
+    const updatedPreferences = { ...preferences, theme };
+    await savePreferences(updatedPreferences);
+  };
+
   // Reset to defaults
   const resetToDefaults = async () => {
     await savePreferences(defaultPreferences);
@@ -233,6 +263,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       value={{
         preferences,
         isLoading,
+        updateTheme,
         updateNotificationSettings,
         updatePrivacySettings,
         updateAccessibilitySettings,

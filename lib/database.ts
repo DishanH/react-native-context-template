@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import { storage } from './storage';
+import type { Database, Profile, UserPreferences as DBUserPreferences, Subscription, UserPreferencesData, DatabaseResponse } from '../types/database';
 
 // Supabase configuration
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
@@ -8,10 +9,9 @@ const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Database table names
 export const TABLES = {
-  USERS: 'users',
+  PROFILES: 'profiles',
   USER_PREFERENCES: 'user_preferences',
   SUBSCRIPTIONS: 'subscriptions',
-  USER_DATA: 'user_data',
   SYNC_QUEUE: 'sync_queue',
 } as const;
 
@@ -88,7 +88,7 @@ class DatabaseManager {
   private initializeSupabase() {
     try {
       if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-        this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        this.supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: {
             autoRefreshToken: true,
             persistSession: true,
@@ -146,68 +146,13 @@ class DatabaseManager {
   }
 
   /**
-   * User Operations
+   * Profile Operations
    */
-  async createUser(userData: Partial<DatabaseUser>) {
-    const localData = { ...userData, id: userData.id || Date.now().toString() };
-    
-    // Always save locally first
-    await storage.setUserData(localData);
-
+  async getProfile(userId: string): Promise<DatabaseResponse<Profile>> {
     if (this.isSupabaseAvailable()) {
       try {
         const { data, error } = await this.supabase!
-          .from(TABLES.USERS)
-          .insert([localData])
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Error creating user in Supabase:', error);
-        await this.addToSyncQueue(TABLES.USERS, localData.id!, 'insert', localData);
-      }
-    } else {
-      await this.addToSyncQueue(TABLES.USERS, localData.id!, 'insert', localData);
-    }
-
-    return localData;
-  }
-
-  async updateUser(userId: string, updates: Partial<DatabaseUser>) {
-    // Update locally first
-    const currentUser = await storage.getUserData();
-    const updatedUser = { ...currentUser, ...updates, updated_at: new Date().toISOString() };
-    await storage.setUserData(updatedUser);
-
-    if (this.isSupabaseAvailable()) {
-      try {
-        const { data, error } = await this.supabase!
-          .from(TABLES.USERS)
-          .update(updates)
-          .eq('id', userId)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Error updating user in Supabase:', error);
-        await this.addToSyncQueue(TABLES.USERS, userId, 'update', updates);
-      }
-    } else {
-      await this.addToSyncQueue(TABLES.USERS, userId, 'update', updates);
-    }
-
-    return updatedUser;
-  }
-
-  async getUser(userId: string) {
-    if (this.isSupabaseAvailable()) {
-      try {
-        const { data, error } = await this.supabase!
-          .from(TABLES.USERS)
+          .from(TABLES.PROFILES)
           .select('*')
           .eq('id', userId)
           .single();
@@ -216,66 +161,168 @@ class DatabaseManager {
         
         // Update local cache
         await storage.setUserData(data);
-        return data;
+        return { data, error: null, success: true };
       } catch (error) {
-        console.error('Error fetching user from Supabase:', error);
+        console.error('Error fetching profile from Supabase:', error);
+        const localData = await storage.getUserData();
+        return { data: localData as Profile, error: error as Error, success: false };
       }
     }
 
     // Fallback to local storage
-    return await storage.getUserData();
+    const localData = await storage.getUserData();
+    return { data: localData as Profile, error: null, success: true };
   }
+
+  async updateProfile(userId: string, updates: Partial<Profile>): Promise<DatabaseResponse<Profile>> {
+    // Update locally first
+    const currentProfile = await storage.getUserData();
+    const updatedProfile = { ...currentProfile, ...updates, updated_at: new Date().toISOString() };
+    await storage.setUserData(updatedProfile);
+
+    if (this.isSupabaseAvailable()) {
+      try {
+        // First try to update using the function
+        const { data, error } = await this.supabase!
+          .rpc('update_user_profile', {
+            profile_data: updates as any
+          });
+
+        if (error) {
+          // If the function fails (maybe profile doesn't exist), try direct insert
+          const { data: insertData, error: insertError } = await this.supabase!
+            .from(TABLES.PROFILES)
+            .insert([{
+              id: userId,
+              email: updates.email || '',
+              full_name: updates.full_name,
+              avatar_url: updates.avatar_url,
+              bio: updates.bio,
+              created_at: updates.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }])
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          return { data: insertData, error: null, success: true };
+        }
+
+        return { data, error: null, success: true };
+      } catch (error) {
+        console.error('Error updating profile in Supabase:', error);
+        await this.addToSyncQueue(TABLES.PROFILES, userId, 'update', updates);
+        return { data: updatedProfile as Profile, error: error as Error, success: false };
+      }
+    } else {
+      await this.addToSyncQueue(TABLES.PROFILES, userId, 'update', updates);
+    }
+
+    return { data: updatedProfile as Profile, error: null, success: true };
+  }
+
+  async createProfile(userId: string, profileData: Partial<Profile>): Promise<DatabaseResponse<Profile>> {
+    // Save locally first
+    const newProfile: Profile = {
+      id: userId,
+      email: profileData.email || '',
+      full_name: profileData.full_name || null,
+      avatar_url: profileData.avatar_url || null,
+      bio: profileData.bio || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    await storage.setUserData(newProfile);
+
+    if (this.isSupabaseAvailable()) {
+      try {
+        // Call the handle_new_user function directly to create profile, subscription, and preferences
+        const { data, error } = await this.supabase!
+          .rpc('handle_new_user_manual', {
+            user_id: userId,
+            user_email: profileData.email || '',
+            user_full_name: profileData.full_name || profileData.email?.split('@')[0] || 'User'
+          });
+
+        if (error) {
+          console.warn('handle_new_user_manual function failed, falling back to direct insert:', error);
+          
+          // Fallback: create profile directly
+          const { data: profileData, error: profileError } = await this.supabase!
+            .from(TABLES.PROFILES)
+            .insert([newProfile])
+            .select()
+            .single();
+
+          if (profileError) throw profileError;
+          return { data: profileData, error: null, success: true };
+        }
+
+        // Get the created profile
+        const { data: profileData, error: getError } = await this.supabase!
+          .from(TABLES.PROFILES)
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (getError) throw getError;
+        return { data: profileData, error: null, success: true };
+
+      } catch (error) {
+        console.error('Error creating profile in Supabase:', error);
+        await this.addToSyncQueue(TABLES.PROFILES, userId, 'insert', newProfile);
+        return { data: newProfile, error: error as Error, success: false };
+      }
+    } else {
+      await this.addToSyncQueue(TABLES.PROFILES, userId, 'insert', newProfile);
+    }
+
+    return { data: newProfile, error: null, success: true };
+  }
+
+
 
   /**
    * User Preferences Operations
    */
-  async updateUserPreferences(userId: string, preferences: any) {
-    const localData = {
-      user_id: userId,
-      preferences,
-      sync_status: SyncStatus.PENDING,
-      updated_at: new Date().toISOString(),
-    };
-
+  async updateUserPreferences(userId: string, preferences: UserPreferencesData): Promise<DatabaseResponse<DBUserPreferences>> {
     // Update locally first
     await storage.setUserPreferences(preferences);
 
     if (this.isSupabaseAvailable()) {
       try {
         const { data, error } = await this.supabase!
-          .from(TABLES.USER_PREFERENCES)
-          .upsert([{ ...localData, sync_status: SyncStatus.SYNCED }])
-          .select()
-          .single();
+          .rpc('update_user_preferences', {
+            new_preferences: preferences as any
+          });
 
         if (error) throw error;
-        return data;
+        return { data, error: null, success: true };
       } catch (error) {
         console.error('Error updating preferences in Supabase:', error);
-        await this.addToSyncQueue(TABLES.USER_PREFERENCES, userId, 'update', localData);
+        await this.addToSyncQueue(TABLES.USER_PREFERENCES, userId, 'update', { preferences });
+        return { data: null, error: error as Error, success: false };
       }
     } else {
-      await this.addToSyncQueue(TABLES.USER_PREFERENCES, userId, 'update', localData);
+      await this.addToSyncQueue(TABLES.USER_PREFERENCES, userId, 'update', { preferences });
     }
 
-    return localData;
+    return { data: null, error: null, success: true };
   }
 
-  async getUserPreferences(userId: string) {
+  async getUserPreferences(userId: string): Promise<DatabaseResponse<UserPreferencesData>> {
     if (this.isSupabaseAvailable()) {
       try {
         const { data, error } = await this.supabase!
-          .from(TABLES.USER_PREFERENCES)
-          .select('*')
-          .eq('user_id', userId)
-          .single();
+          .rpc('get_user_preferences', { user_uuid: userId });
 
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+        if (error) throw error;
         
-        if (data) {
+        if (data && data.length > 0) {
+          const preferences = data[0].preferences as UserPreferencesData;
           // Update local cache
-          await storage.setUserPreferences(data.preferences);
-          return data;
+          await storage.setUserPreferences(preferences);
+          return { data: preferences, error: null, success: true };
         }
       } catch (error) {
         console.error('Error fetching preferences from Supabase:', error);
@@ -284,20 +331,17 @@ class DatabaseManager {
 
     // Fallback to local storage
     const localPreferences = await storage.getUserPreferences();
-    return localPreferences ? { user_id: userId, preferences: localPreferences } : null;
+    return { 
+      data: localPreferences as UserPreferencesData, 
+      error: null, 
+      success: true 
+    };
   }
 
   /**
    * Subscription Operations
    */
-  async updateSubscription(userId: string, subscription: any) {
-    const localData = {
-      user_id: userId,
-      ...subscription,
-      sync_status: SyncStatus.PENDING,
-      updated_at: new Date().toISOString(),
-    };
-
+  async updateSubscription(userId: string, subscription: Partial<Subscription>): Promise<DatabaseResponse<Subscription>> {
     // Update locally first
     await storage.set('user_subscription', subscription);
 
@@ -305,38 +349,38 @@ class DatabaseManager {
       try {
         const { data, error } = await this.supabase!
           .from(TABLES.SUBSCRIPTIONS)
-          .upsert([{ ...localData, sync_status: SyncStatus.SYNCED }])
+          .update(subscription)
+          .eq('user_id', userId)
           .select()
           .single();
 
         if (error) throw error;
-        return data;
+        return { data, error: null, success: true };
       } catch (error) {
         console.error('Error updating subscription in Supabase:', error);
-        await this.addToSyncQueue(TABLES.SUBSCRIPTIONS, userId, 'update', localData);
+        await this.addToSyncQueue(TABLES.SUBSCRIPTIONS, userId, 'update', subscription);
+        return { data: null, error: error as Error, success: false };
       }
     } else {
-      await this.addToSyncQueue(TABLES.SUBSCRIPTIONS, userId, 'update', localData);
+      await this.addToSyncQueue(TABLES.SUBSCRIPTIONS, userId, 'update', subscription);
     }
 
-    return localData;
+    return { data: null, error: null, success: true };
   }
 
-  async getSubscription(userId: string) {
+  async getSubscription(userId: string): Promise<DatabaseResponse<Subscription>> {
     if (this.isSupabaseAvailable()) {
       try {
         const { data, error } = await this.supabase!
-          .from(TABLES.SUBSCRIPTIONS)
-          .select('*')
-          .eq('user_id', userId)
-          .single();
+          .rpc('get_user_subscription', { user_uuid: userId });
 
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error) throw error;
         
-        if (data) {
+        if (data && data.length > 0) {
+          const subscription = data[0] as Subscription;
           // Update local cache
-          await storage.set('user_subscription', data);
-          return data;
+          await storage.set('user_subscription', subscription);
+          return { data: subscription, error: null, success: true };
         }
       } catch (error) {
         console.error('Error fetching subscription from Supabase:', error);
@@ -344,7 +388,12 @@ class DatabaseManager {
     }
 
     // Fallback to local storage
-    return await storage.get('user_subscription', true);
+    const localSubscription = await storage.get('user_subscription', true);
+    return { 
+      data: localSubscription as Subscription, 
+      error: null, 
+      success: true 
+    };
   }
 
   /**
@@ -434,17 +483,34 @@ class DatabaseManager {
   /**
    * Real-time subscriptions for live data updates
    */
-  subscribeToUserChanges(userId: string, callback: (payload: any) => void) {
+  subscribeToProfileChanges(userId: string, callback: (payload: any) => void) {
     if (!this.isSupabaseAvailable()) return null;
 
     return this.supabase!
-      .channel(`user_${userId}`)
+      .channel(`profile_${userId}`)
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
-          table: TABLES.USERS,
+          table: TABLES.PROFILES,
           filter: `id=eq.${userId}` 
+        }, 
+        callback
+      )
+      .subscribe();
+  }
+
+  subscribeToSubscriptionChanges(userId: string, callback: (payload: any) => void) {
+    if (!this.isSupabaseAvailable()) return null;
+
+    return this.supabase!
+      .channel(`subscription_${userId}`)
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: TABLES.SUBSCRIPTIONS,
+          filter: `user_id=eq.${userId}` 
         }, 
         callback
       )

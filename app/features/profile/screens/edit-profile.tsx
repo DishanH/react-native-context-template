@@ -21,11 +21,12 @@ import { feedback } from '../../../../lib/feedback';
 
 function EditProfileContent() {
   const { colors } = useTheme();
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { headerHeight, handleScroll } = useHeader();
   
-  const [name, setName] = useState(user?.name || '');
-  const [profileImage, setProfileImage] = useState('https://randomuser.me/api/portraits/men/32.jpg');
+  const [name, setName] = useState(user?.full_name || user?.name || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [profileImage, setProfileImage] = useState(user?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async () => {
@@ -37,12 +38,25 @@ function EditProfileContent() {
     setIsLoading(true);
     feedback.buttonPress(); // Haptic feedback for button press
     
-    // Simulate save operation
-    setTimeout(() => {
+    try {
+      const success = await updateProfile({
+        full_name: name,
+        bio: bio || null,
+        avatar_url: profileImage !== 'https://randomuser.me/api/portraits/men/32.jpg' ? profileImage : null,
+      });
+
+      if (success) {
+        feedback.success('Success!', 'Profile updated successfully');
+        setTimeout(() => router.push('/settings'), 500); // Small delay for user to see toast
+      } else {
+        feedback.error('Error', 'Failed to update profile. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      feedback.error('Error', 'Failed to update profile. Please try again.');
+    } finally {
       setIsLoading(false);
-      feedback.success('Success!', 'Profile updated successfully');
-      setTimeout(() => router.push('/settings'), 500); // Small delay for user to see toast
-    }, 1500);
+    }
   };
 
   const handleImagePicker = () => {
@@ -153,6 +167,31 @@ function EditProfileContent() {
                   onChangeText={setName}
                   autoCapitalize="words"
                 />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>Bio</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.bioInput,
+                    { 
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                      color: colors.text
+                    }
+                  ]}
+                  placeholder="Tell us about yourself..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={bio}
+                  onChangeText={setBio}
+                  multiline
+                  numberOfLines={3}
+                  maxLength={200}
+                />
+                <Text style={[styles.inputHint, { color: colors.textSecondary }]}>
+                  {bio.length}/200 characters
+                </Text>
               </View>
 
               <View style={styles.inputGroup}>
@@ -315,6 +354,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     borderWidth: 1,
+  },
+  bioInput: {
+    height: 80,
+    paddingTop: 12,
+    textAlignVertical: 'top',
   },
   disabledInput: {
     flexDirection: 'row',

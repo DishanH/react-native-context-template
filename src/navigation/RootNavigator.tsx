@@ -31,7 +31,6 @@ export function RootNavigator() {
   // Handle navigation based on auth and onboarding state
   useEffect(() => {
     if (isLoading || authLoading) return;
-
     if (!isOnboardingComplete) {
       // User hasn't completed onboarding
       router.replace('/onboarding' as any);

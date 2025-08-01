@@ -16,6 +16,15 @@ const DARK_COLORS = {
   medium: '#253745'
 };
 
+const SYSTEM_COLORS = {
+  background: 'linear-gradient(45deg, #FFFFFF 50%, #06141B 50%)',
+  backgroundLight: '#FFFFFF',
+  backgroundDark: '#06141B',
+  text: '#1E2022',
+  textDark: '#CCD0CF',
+  medium: '#C9D6DF'
+};
+
 interface ThemeToggleProps {
   containerStyle?: object;
 }
@@ -81,6 +90,36 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ containerStyle }) => {
             )}
           </View>
         </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.themeBox,
+            styles.systemThemeBox,
+            { 
+              borderColor: theme === 'system' ? themeColors.primary : themeColors.border,
+              borderWidth: theme === 'system' ? 2 : 1,
+            }
+          ]}
+          onPress={() => setTheme('system')}
+        >
+          <View style={[styles.systemThemeBackground, { backgroundColor: SYSTEM_COLORS.backgroundLight }]} />
+          <View style={[styles.systemThemeBackground, styles.systemThemeDark, { backgroundColor: SYSTEM_COLORS.backgroundDark }]} />
+          <View style={styles.themeContent}>
+            <View style={styles.themeColorCircles}>
+              <View style={[styles.colorCircle, { backgroundColor: LIGHT_COLORS.text }]} />
+              <View style={[styles.colorCircle, { backgroundColor: DARK_COLORS.text }]} />
+            </View>
+            <Text style={[styles.themeLabel, { color: themeColors.text }]}>System</Text>
+            {theme === 'system' && (
+              <FontAwesome5 
+                name="check-circle" 
+                size={16} 
+                color={themeColors.primary}
+                style={styles.checkIcon}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -93,17 +132,34 @@ const styles = StyleSheet.create({
   themeOptions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   themeBox: {
-    width: '48%',
+    width: '30%',
     height: 120,
     borderRadius: 12,
     overflow: 'hidden',
     justifyContent: 'flex-end',
   },
+  systemThemeBox: {
+    position: 'relative',
+  },
+  systemThemeBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '50%',
+  },
+  systemThemeDark: {
+    left: '50%',
+  },
   themeContent: {
     padding: 12,
     position: 'relative',
+    zIndex: 1,
   },
   themeColorCircles: {
     flexDirection: 'row',

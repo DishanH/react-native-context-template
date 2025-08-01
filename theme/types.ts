@@ -8,7 +8,7 @@
 /**
  * Available theme variants
  */
-export type ThemeType = 'light' | 'dark';
+export type ThemeType = 'light' | 'dark' | 'system';
 
 /**
  * Theme color palette interface

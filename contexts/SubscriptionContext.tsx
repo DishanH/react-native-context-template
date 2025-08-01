@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { database } from '../lib/database';
 import { useAuth } from './AuthContext';
+import type { Subscription, SubscriptionPlan, SubscriptionStatus } from '../types/database';
 
 /**
- * Subscription Plan Types
+ * Subscription Plan Types - using database types
  */
-export type SubscriptionPlan = 'free' | 'pro' | 'premium';
-
-export type SubscriptionStatus = 'active' | 'canceled' | 'expired' | 'pending' | 'trial';
+export { SubscriptionPlan, SubscriptionStatus } from '../types/database';
 
 /**
  * Subscription Plan Details
@@ -23,18 +23,9 @@ export interface PlanDetails {
 }
 
 /**
- * User Subscription Information
+ * User Subscription Information - using database types
  */
-export interface UserSubscription {
-  plan: SubscriptionPlan;
-  status: SubscriptionStatus;
-  startDate: string;
-  endDate: string;
-  autoRenew: boolean;
-  trialEndDate?: string;
-  paymentMethod?: string;
-  nextBillingDate?: string;
-}
+export type UserSubscription = Subscription;
 
 /**
  * Subscription Context Type
@@ -134,41 +125,63 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * Load subscription data from storage
+   * Load subscription data from database
    */
   useEffect(() => {
     const loadSubscription = async () => {
-      if (!user?.isAuthenticated) {
+      if (!user?.isAuthenticated || !user?.id) {
         setSubscription(null);
         setIsLoading(false);
         return;
       }
 
       try {
-        const storedSubscription = await storage.get(SUBSCRIPTION_STORAGE_KEY, true);
-        if (storedSubscription) {
-          setSubscription(storedSubscription);
+        const response = await database.getSubscription(user.id);
+        
+        if (response.success && response.data) {
+          setSubscription(response.data);
+          await storage.set(SUBSCRIPTION_STORAGE_KEY, response.data);
         } else {
-          // Create default free subscription for new users
-          const defaultSubscription: UserSubscription = {
-            plan: 'free',
-            status: 'active',
-            startDate: new Date().toISOString(),
-            endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
-            autoRenew: false,
-          };
-          setSubscription(defaultSubscription);
-          await storage.set(SUBSCRIPTION_STORAGE_KEY, defaultSubscription);
+          // Try to get from local storage as fallback
+          const storedSubscription = await storage.get(SUBSCRIPTION_STORAGE_KEY, true);
+          if (storedSubscription) {
+            setSubscription(storedSubscription);
+          } else {
+            // Create default free subscription for new users
+            const defaultSubscription: UserSubscription = {
+              id: '', // Will be set by database
+              user_id: user.id,
+              plan: 'free',
+              status: 'active',
+              start_date: new Date().toISOString(),
+              end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+              auto_renew: false,
+              trial_end_date: null,
+              payment_method: null,
+              next_billing_date: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            setSubscription(defaultSubscription);
+            await storage.set(SUBSCRIPTION_STORAGE_KEY, defaultSubscription);
+          }
         }
       } catch (error) {
-        console.error('Failed to load subscription from storage:', error);
+        console.error('Failed to load subscription:', error);
         // Set default free plan on error
         const defaultSubscription: UserSubscription = {
+          id: '',
+          user_id: user.id,
           plan: 'free',
           status: 'active',
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          autoRenew: false,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          auto_renew: false,
+          trial_end_date: null,
+          payment_method: null,
+          next_billing_date: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
         setSubscription(defaultSubscription);
       } finally {
@@ -180,14 +193,28 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user]);
 
   /**
-   * Save subscription data to storage
+   * Save subscription data to database and storage
    */
   const saveSubscription = async (newSubscription: UserSubscription) => {
+    if (!user?.id) return;
+    
     try {
+      const response = await database.updateSubscription(user.id, newSubscription);
+      
+      if (response.success) {
+        await storage.set(SUBSCRIPTION_STORAGE_KEY, newSubscription);
+        setSubscription(newSubscription);
+      } else {
+        console.error('Failed to save subscription to database');
+        // Still save locally as fallback
+        await storage.set(SUBSCRIPTION_STORAGE_KEY, newSubscription);
+        setSubscription(newSubscription);
+      }
+    } catch (error) {
+      console.error('Failed to save subscription:', error);
+      // Fallback to local storage
       await storage.set(SUBSCRIPTION_STORAGE_KEY, newSubscription);
       setSubscription(newSubscription);
-    } catch (error) {
-      console.error('Failed to save subscription to storage:', error);
     }
   };
 
@@ -207,13 +234,19 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       const newSubscription: UserSubscription = {
+        ...subscription,
+        id: subscription?.id || '',
+        user_id: user?.id || '',
         plan: planId,
         status: 'active',
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-        autoRenew: true,
-        paymentMethod: 'Credit Card',
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        auto_renew: true,
+        payment_method: 'Credit Card',
+        next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        trial_end_date: null,
+        created_at: subscription?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       await saveSubscription(newSubscription);
@@ -243,12 +276,19 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const trialEndDate = new Date(Date.now() + plan.trialDays * 24 * 60 * 60 * 1000);
       
       const newSubscription: UserSubscription = {
+        ...subscription,
+        id: subscription?.id || '',
+        user_id: user?.id || '',
         plan: planId,
         status: 'trial',
-        startDate: new Date().toISOString(),
-        endDate: trialEndDate.toISOString(),
-        trialEndDate: trialEndDate.toISOString(),
-        autoRenew: false,
+        start_date: new Date().toISOString(),
+        end_date: trialEndDate.toISOString(),
+        trial_end_date: trialEndDate.toISOString(),
+        auto_renew: false,
+        payment_method: null,
+        next_billing_date: null,
+        created_at: subscription?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       await saveSubscription(newSubscription);
@@ -274,8 +314,9 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       const updatedSubscription: UserSubscription = {
         ...subscription,
-        status: 'canceled',
-        autoRenew: false,
+        status: 'cancelled',
+        auto_renew: false,
+        updated_at: new Date().toISOString(),
       };
 
       await saveSubscription(updatedSubscription);
@@ -302,9 +343,10 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const updatedSubscription: UserSubscription = {
         ...subscription,
         status: 'active',
-        autoRenew: true,
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        auto_renew: true,
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       await saveSubscription(updatedSubscription);
@@ -328,7 +370,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       const updatedSubscription: UserSubscription = {
         ...subscription,
-        paymentMethod,
+        payment_method: paymentMethod,
+        updated_at: new Date().toISOString(),
       };
 
       await saveSubscription(updatedSubscription);
@@ -348,7 +391,8 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const updatedSubscription: UserSubscription = {
         ...subscription,
-        autoRenew: !subscription.autoRenew,
+        auto_renew: !subscription.auto_renew,
+        updated_at: new Date().toISOString(),
       };
 
       await saveSubscription(updatedSubscription);
@@ -383,7 +427,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!subscription || subscription.status !== 'trial') return false;
     
     const now = new Date();
-    const trialEnd = subscription.trialEndDate ? new Date(subscription.trialEndDate) : null;
+    const trialEnd = subscription.trial_end_date ? new Date(subscription.trial_end_date) : null;
     
     return trialEnd ? now < trialEnd : false;
   };
@@ -395,7 +439,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!subscription) return 0;
     
     const now = new Date();
-    const endDate = new Date(subscription.endDate);
+    const endDate = new Date(subscription.end_date);
     const diffTime = endDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     

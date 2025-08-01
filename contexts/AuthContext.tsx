@@ -1,21 +1,16 @@
-import { router } from 'expo-router';
 import * as React from "react";
 import { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
 import { database } from '../lib/database';
+import { useAuth as useSupabaseAuth } from '../hooks/useAuth';
+import { GoogleAuthService, AppleAuthService } from '../lib/auth';
+import type { AppUser, Profile } from '../types/database';
 
 /**
  * User type definition
  * Contains all essential user information
  */
-export type User = {
-  id: string;
-  email: string;
-  name: string;
-  isAuthenticated: boolean;
-  avatar_url?: string;
-  supabaseUser?: any; // Store Supabase user object for additional data
-};
+export type User = AppUser;
 
 /**
  * Authentication context type definition
@@ -24,6 +19,7 @@ export type User = {
 type AuthContextType = {
   // Current user state
   user: User | null;
+  profile: Profile | null;
   isLoading: boolean;
   
   // Authentication methods
@@ -31,6 +27,9 @@ type AuthContextType = {
   signUp: (name: string, email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   socialSignIn: (provider: 'google' | 'apple') => Promise<boolean>;
+  
+  // Profile methods
+  updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
 };
 
 /**
@@ -51,89 +50,82 @@ const USER_STORAGE_KEY = 'user_data';
  * @param children - React components that need access to auth context
  */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // User state - null means not authenticated
+  // Use our simplified auth hook for Supabase state
+  const { session, user: supabaseUser, loading: authLoading } = useSupabaseAuth();
+  
+  // Enhanced user state with app-specific data
   const [user, setUser] = useState<User | null>(null);
-  // Loading state for async operations
   const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   /**
-   * Initialize auth state and listen for changes
+   * Convert Supabase user to app user format and handle storage
    */
   useEffect(() => {
-    const initializeAuth = async () => {
+    const updateUserState = async () => {
       try {
-        // Check for existing Supabase session
-        const session = await database.getSession();
-        
         if (session?.user) {
-          // Create user object from Supabase session
+          // Fetch the user's profile from the database
+          let profileResponse = await database.getProfile(session.user.id);
+          let userProfile = profileResponse.data;
+
+          // If profile doesn't exist, create it (fallback for trigger failure)
+          if (!userProfile) {
+            console.log('Profile not found, creating fallback profile...');
+            try {
+              const fallbackProfileResponse = await database.createProfile(session.user.id, {
+                email: session.user.email || '',
+                full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+                avatar_url: session.user.user_metadata?.avatar_url || null,
+                bio: null,
+              });
+              
+              if (fallbackProfileResponse.success) {
+                userProfile = fallbackProfileResponse.data;
+                console.log('Fallback profile created successfully');
+              }
+            } catch (createError) {
+              console.error('Failed to create fallback profile:', createError);
+            }
+          }
+
           const userData: User = {
             id: session.user.id,
             email: session.user.email || '',
-            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            name: userProfile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
             isAuthenticated: true,
-            avatar_url: session.user.user_metadata?.avatar_url,
+            avatar_url: userProfile?.avatar_url || session.user.user_metadata?.avatar_url || undefined,
+            bio: userProfile?.bio || undefined,
+            full_name: userProfile?.full_name || undefined,
             supabaseUser: session.user,
+            profile: userProfile || undefined,
           };
           
           setUser(userData);
+          setProfile(userProfile);
           await storage.set(USER_STORAGE_KEY, userData);
           await storage.setAuthStatus(true);
+          
+          // Note: Navigation is handled by RootNavigator based on auth state
         } else {
-          // Try to get stored user data as fallback
-          const storedUser = await storage.get(USER_STORAGE_KEY, true);
-          if (storedUser && storedUser.isAuthenticated) {
-            setUser(storedUser);
-          }
+          setUser(null);
+          setProfile(null);
+          await storage.remove(USER_STORAGE_KEY);
+          await storage.setAuthStatus(false);
+          // Note: Navigation to auth screen is handled by RootNavigator
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error);
-        // Fallback to stored user data
-        try {
-          const storedUser = await storage.get(USER_STORAGE_KEY, true);
-          if (storedUser && storedUser.isAuthenticated) {
-            setUser(storedUser);
-          }
-        } catch (storageError) {
-          console.error('Failed to load user from storage:', storageError);
-        }
+        console.error('Failed to update user state:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Listen for auth state changes
-    const { data: { subscription } } = database.onAuthStateChange(async (event, session) => {
-  
-      if (event === 'SIGNED_IN' && session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-          isAuthenticated: true,
-          avatar_url: session.user.user_metadata?.avatar_url,
-          supabaseUser: session.user,
-        };
-
-        setUser(userData);
-        await storage.set(USER_STORAGE_KEY, userData);
-        await storage.setAuthStatus(true);
-        // Navigate to main app
-        router.replace('/tabs' as any);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        await storage.remove(USER_STORAGE_KEY);
-        await storage.setAuthStatus(false);
-      }
-    });
-
-    initializeAuth();
-
-    // Cleanup subscription on unmount
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, []);
+    // Only update when auth loading is complete
+    if (!authLoading) {
+      updateUserState();
+    }
+  }, [session, supabaseUser, authLoading]);
 
   /**
    * Save user data to storage whenever user state changes
@@ -201,21 +193,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      console.log('Starting signup process for:', email, 'with name:', name);
       const { user: supabaseUser, session } = await database.signUpWithEmail(email, password, name);
       
       if (supabaseUser) {
+        console.log('Supabase user created:', {
+          id: supabaseUser.id,
+          email: supabaseUser.email,
+          user_metadata: supabaseUser.user_metadata
+        });
+        
         // For email signup, user might need to verify email
         if (session) {
           // User is immediately signed in (auto-confirm enabled)
+          console.log('User signed up and signed in automatically');
           return true;
         } else {
           // User needs to verify email
-          // You might want to show a message to check email
-          console.log('Please check your email to verify your account');
+          console.log('User created but needs email verification');
           return true;
         }
       }
       
+      console.log('No Supabase user returned from signup');
       return false;
     } catch (error) {
       console.error('Sign up error:', error);
@@ -226,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Sign in with social providers (Google, Apple) using Supabase
+   * Sign in with social providers (Google, Apple) using dedicated auth services
    * 
    * @param provider - Social provider ('google' | 'apple')
    * @returns Promise<boolean> - true if successful, false otherwise
@@ -235,12 +235,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      await database.signInWithProvider(provider);
+      let success = false;
       
-      // For web OAuth, this will redirect to the provider
-      // The auth state change will handle the user login after redirect
-      console.log('OAuth redirect initiated for:', provider);
-      return true;
+      if (provider === 'google') {
+        success = await GoogleAuthService.signInWithGoogle();
+      } else if (provider === 'apple') {
+        success = await AppleAuthService.signInWithApple();
+      }
+      
+      // Auth state will be updated via the useAuth hook
+      return success;
       
     } catch (error) {
       console.error(`${provider} sign in error:`, error);
@@ -252,22 +256,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /**
    * Sign out the current user using Supabase
-   * Clears all user data and navigates to sign-in screen
+   * Clears all user data and lets RootNavigator handle navigation
    */
   const signOut = async (): Promise<void> => {
     setIsLoading(true);
     
     try {
+      // Clear Supabase session
       await database.signOut();
       // User state will be cleared via auth state change listener
+      // Navigation will be handled by RootNavigator
     } catch (error) {
       console.error('Sign out error:', error);
-      // Fallback: clear user state manually
+      // Fallback: clear user state manually if Supabase signOut fails
       setUser(null);
+      setProfile(null);
       await storage.remove(USER_STORAGE_KEY);
       await storage.setAuthStatus(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  /**
+   * Update user profile
+   */
+  const updateProfile = async (updates: Partial<Profile>): Promise<boolean> => {
+    if (!user?.id) return false;
+    
+    try {
+      const response = await database.updateProfile(user.id, updates);
+      
+      if (response.success && response.data) {
+        // Update local state
+        setProfile(response.data);
+        
+        // Update user object with new profile data
+        const updatedUser: User = {
+          ...user,
+          name: response.data.full_name || user.name,
+          full_name: response.data.full_name || undefined,
+          avatar_url: response.data.avatar_url || undefined,
+          bio: response.data.bio || undefined,
+          profile: response.data,
+        };
+        
+        setUser(updatedUser);
+        await storage.set(USER_STORAGE_KEY, updatedUser);
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      return false;
     }
   };
 
@@ -277,11 +320,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const value: AuthContextType = {
     user,
+    profile,
     isLoading,
     signIn,
     signUp,
     signOut,
-    socialSignIn
+    socialSignIn,
+    updateProfile
   };
 
   return (
