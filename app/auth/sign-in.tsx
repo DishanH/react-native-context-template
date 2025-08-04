@@ -52,14 +52,7 @@ const SignInScreen = () => {
     } else if (result.error) {
       // For email verification errors, navigate to dedicated screen
       if (result.error.type === 'email_not_confirmed') {
-        //to-do
-        //router.push(`/auth/email-verification?email=${encodeURIComponent(email)}`);
-
-        setAuthError({
-          type: 'email_not_confirmed',
-          message: 'Please check your email and click the verification link before signing in.',
-          originalError: 'Please check your email and click the verification link before signing in.',
-        });
+        router.push(`/auth/email-verification?email=${encodeURIComponent(email)}`);
         return;
 
       } else {

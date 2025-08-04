@@ -46,8 +46,19 @@ const SignUpScreen = () => {
     
     if (result.success) {
       if (result.needsEmailVerification) {
-        // Navigate to email verification screen
-        router.replace(`/auth/email-verification?email=${encodeURIComponent(email)}`);
+        // Show success toast and then error card for email verification
+        Toast.show({
+          type: 'success',
+          text1: 'Account Created!',
+          text2: 'Please check your email for verification',
+        });
+        
+        // Show email verification message
+        setAuthError({
+          type: 'email_not_confirmed',
+          message: 'Your account has been created successfully! Please check your email and click the verification link to complete your registration.',
+          originalError: null,
+        });
       } else {
         // User is automatically signed in
         Toast.show({
@@ -77,7 +88,12 @@ const SignUpScreen = () => {
   };
 
   const handleRetrySignUp = () => {
-    setAuthError(null);
+    if (authError?.type === 'email_not_confirmed') {
+      // Navigate to email verification screen
+      router.push(`/auth/email-verification?email=${encodeURIComponent(email)}`);
+    } else {
+      setAuthError(null);
+    }
   };
 
   const handleCloseError = () => {
@@ -100,7 +116,9 @@ const SignUpScreen = () => {
             <AuthErrorCard
               error={authError}
               email={authError.type === 'email_not_confirmed' ? email : undefined}
-              onRetry={handleRetrySignUp}
+              onRetry={authError.type === 'email_not_confirmed' ? () => {
+                router.push(`/auth/email-verification?email=${encodeURIComponent(email)}`);
+              } : handleRetrySignUp}
               onResendVerification={authError.type === 'email_not_confirmed' ? async () => {
                 const success = await resendVerificationEmail(email);
                 if (success) {

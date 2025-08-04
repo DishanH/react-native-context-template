@@ -17,6 +17,8 @@ interface AuthErrorCardProps {
   onResendVerification?: () => void;
   onClose?: () => void;
   showCloseButton?: boolean;
+  onCustomAction?: () => void;
+  customActionTitle?: string;
 }
 
 const AuthErrorCard: React.FC<AuthErrorCardProps> = ({
@@ -26,6 +28,8 @@ const AuthErrorCard: React.FC<AuthErrorCardProps> = ({
   onResendVerification,
   onClose,
   showCloseButton = false,
+  onCustomAction,
+  customActionTitle,
 }) => {
   const { colors } = useTheme();
 
@@ -114,7 +118,7 @@ const AuthErrorCard: React.FC<AuthErrorCardProps> = ({
               title="Try Again"
               variant="outline"
               onPress={onRetry!}
-              style={[styles.actionButton, ...(showResendButton() ? [styles.secondaryAction] : [])]}
+              style={[styles.actionButton, styles.secondaryAction]}
             />
           )}
         </View>

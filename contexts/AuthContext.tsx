@@ -394,23 +394,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    */
   const resendVerificationEmail = async (email: string): Promise<boolean> => {
     try {
-      const supabaseClient = database.getSupabaseClient();
-      if (!supabaseClient) {
-        console.error('Supabase client not available');
-        return false;
-      }
-
-      const { error } = await supabaseClient.auth.resend({
-        type: 'signup',
-        email: email,
-      });
-      
-      if (error) {
-        console.error('Failed to resend verification email:', error);
-        return false;
-      }
-      
-      return true;
+      return await database.resendVerificationEmail(email);
     } catch (error) {
       console.error('Failed to resend verification email:', error);
       return false;

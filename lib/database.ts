@@ -553,10 +553,52 @@ class DatabaseManager {
     return data;
   }
 
+  async resendVerificationEmail(email: string) {
+    if (!this.supabase) {
+      throw new Error('Supabase not initialized');
+    }
+
+    // Get redirect URL for email verification
+    const getEmailRedirectUrl = () => {
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.location && window.location.origin) {
+          return `${window.location.origin}/auth/callback`;
+        }
+        // Fallback for web if window.location.origin is not available
+        return 'http://localhost:8081/auth/callback';
+      }
+      return 'rn-context-template://auth/callback';
+    };
+
+    const { error } = await this.supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: getEmailRedirectUrl(),
+      },
+    });
+
+    if (error) throw error;
+    return true;
+  }
+
   async signUpWithEmail(email: string, password: string, name: string) {
     if (!this.supabase) {
       throw new Error('Supabase not initialized');
     }
+
+    // Get redirect URL for email verification
+    const getEmailRedirectUrl = () => {
+      console.log('getEmailRedirectUrl', Platform.OS);
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined' && window.location && window.location.origin) {
+          return `${window.location.origin}/auth/callback`;
+        }
+        // Fallback for web if window.location.origin is not available
+        return 'http://localhost:8081/auth/callback';
+      }
+      return 'rn-context-template://auth/callback';
+    };
 
     const { data, error } = await this.supabase.auth.signUp({
       email,
@@ -565,6 +607,7 @@ class DatabaseManager {
         data: {
           full_name: name,
         },
+        emailRedirectTo: getEmailRedirectUrl(),
       },
     });
 
