@@ -105,8 +105,7 @@
       [
         "expo-font",
         {
-          "fonts": [
-          ]
+          "fonts": []
         }
       ],
       [
@@ -123,14 +122,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
-      }
+        "projectId": "c38dd621-65c6-40e6-831b-b4d78679207d"
+      },
+      "router": {}
     },
     "updates": {
-      "url": "https://u.expo.dev/your-project-id-here"
+      "url": ""
     },
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": ""
     }
   }
 }

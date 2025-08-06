@@ -525,3 +525,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Made with ❤️ by Dishan Hewage**
 
 [⭐ Star us on GitHub](https://github.com/dishanh/react-native-context-template) | [🚀 Deploy Now](https://react-native-context-template.dev/deploy) | [📖 Read the Docs](https://docs.react-native-context-template.dev) 
+
+
+
+
+## Build and  Deploy with Expo EAS
+npx expo install expo-dev-client
+npm install -g eas-cli
+eas login
+eas build:configure
+(make sure to remove "projectId": "" app.json)
