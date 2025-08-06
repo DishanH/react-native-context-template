@@ -530,8 +530,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 ## Build and  Deploy with Expo EAS
+https://egghead.io/courses/build-and-deploy-react-native-apps-with-expo-eas-85ab521e
 npx expo install expo-dev-client
 npm install -g eas-cli
 eas login
 eas build:configure
 (make sure to remove "projectId": "" app.json)
+add development:simulator profile to eas.json
+eas build --profile=development:simulator --platform=ios
+
+npx expo start --dev-client
