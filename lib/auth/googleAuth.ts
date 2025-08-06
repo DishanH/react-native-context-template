@@ -8,7 +8,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export class GoogleAuthService {
   private static redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'your-app-scheme', // TODO: Replace with your app scheme from app.json
+    scheme: 'rn-context-template', // Updated to match app.json scheme
     path: 'auth/callback',
   });
 
@@ -18,15 +18,21 @@ export class GoogleAuthService {
    */
   static async signInWithGoogle(): Promise<boolean> {
     try {
+      console.log('signInWithGoogle', Platform.OS);
       // For web, use Supabase's built-in OAuth
       if (Platform.OS === 'web') {
-        const { error } = await database.signInWithProvider('google');
-        if (error) throw error;
+        await database.signInWithProvider('google');
         return true;
       }
 
+      console.log('signInWithGoogle2', Platform.OS);
       // For mobile, use AuthSession for better control
-      const { data, error } = await database.getSupabaseClient().auth.signInWithOAuth({
+      const supabaseClient = database.getSupabaseClient();
+      if (!supabaseClient) {
+        throw new Error('Supabase client not available');
+      }
+
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: this.redirectUri,
@@ -64,7 +70,11 @@ export class GoogleAuthService {
       const params = this.extractParamsFromUrl(url);
       
       if (params.access_token && params.refresh_token) {
-        const { error } = await database.getSupabaseClient().auth.setSession({
+        const supabaseClient = database.getSupabaseClient();
+        if (!supabaseClient) {
+          throw new Error('Supabase client not available');
+        }
+        const { error } = await supabaseClient.auth.setSession({
           access_token: params.access_token,
           refresh_token: params.refresh_token,
         });

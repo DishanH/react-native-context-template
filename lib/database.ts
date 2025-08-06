@@ -221,14 +221,14 @@ class DatabaseManager {
     return { data: updatedProfile as Profile, error: null, success: true };
   }
 
-  async createProfile(userId: string, profileData: Partial<Profile>): Promise<DatabaseResponse<Profile>> {
+  async createProfile(userId: string, profileInput: Partial<Profile>): Promise<DatabaseResponse<Profile>> {
     // Save locally first
     const newProfile: Profile = {
       id: userId,
-      email: profileData.email || '',
-      full_name: profileData.full_name || null,
-      avatar_url: profileData.avatar_url || null,
-      bio: profileData.bio || null,
+      email: profileInput.email || '',
+      full_name: profileInput.full_name || null,
+      avatar_url: profileInput.avatar_url || null,
+      bio: profileInput.bio || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -240,8 +240,8 @@ class DatabaseManager {
         const { data, error } = await this.supabase!
           .rpc('handle_new_user_manual', {
             user_id: userId,
-            user_email: profileData.email || '',
-            user_full_name: profileData.full_name || profileData.email?.split('@')[0] || 'User'
+            user_email: profileInput.email || '',
+            user_full_name: profileInput.full_name || profileInput.email?.split('@')[0] || 'User'
           });
 
         if (error) {
