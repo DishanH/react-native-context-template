@@ -105,7 +105,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const loadPreferences = async () => {
       if (!user?.isAuthenticated || !user?.id) {
-        setPreferences(defaultPreferences);
+        // For unauthenticated users, always try to load from local storage first
+        // This preserves theme settings during logout/signin cycles
+        try {
+          const savedPreferences = await storage.getUserPreferences();
+          if (savedPreferences) {
+            setPreferences({ ...defaultPreferences, ...savedPreferences });
+          } else {
+            setPreferences(defaultPreferences);
+          }
+        } catch (error) {
+          console.error('Error loading preferences from storage:', error);
+          setPreferences(defaultPreferences);
+        }
         setIsLoading(false);
         return;
       }
@@ -115,6 +127,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
         if (response.success && response.data) {
           setPreferences({ ...defaultPreferences, ...response.data });
+          // Also save to local storage for persistence
+          await storage.setUserPreferences({ ...defaultPreferences, ...response.data });
         } else {
           // Fallback to local storage
           const savedPreferences = await storage.getUserPreferences();

@@ -418,7 +418,8 @@ export const storage = {
       if (key === 'user_data') {
         console.log(`Storing ${key}: ${size} bytes`);
         if (size > 1500) { // Log details if approaching the limit
-          console.log('User data content:', JSON.stringify(JSON.parse(stringValue), null, 2));
+          console.log('User data content');
+          //console.log('User data content:', JSON.stringify(JSON.parse(stringValue), null, 2));
         }
       }
       

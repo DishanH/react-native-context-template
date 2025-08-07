@@ -387,6 +387,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(null);
       await storage.remove(USER_STORAGE_KEY);
       await storage.setAuthStatus(false);
+      // Note: We preserve onboarding status and user preferences during logout
     } finally {
       setIsLoading(false);
     }

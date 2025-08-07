@@ -673,8 +673,11 @@ class DatabaseManager {
       await this.supabase.auth.signOut();
     }
     
-    // Clear local data
-    await storage.clearAll();
+    // Clear only authentication-related data, preserve onboarding status and user preferences
+    await storage.remove('userData');
+    await storage.setAuthStatus(false);
+    // Note: We intentionally keep onboardingComplete and userPreferences
+    // so the user doesn't have to redo onboarding or reset their theme preferences
   }
 
   /**
