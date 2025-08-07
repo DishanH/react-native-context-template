@@ -18,6 +18,7 @@ import Button from '../../../../src/shared/components/ui/Button';
 import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
 import { useTheme, useAuth, useHeader } from '../../../../contexts';
 import { feedback } from '../../../../lib/feedback';
+import { storageBucket } from '../../../../lib/storage-bucket';
 
 function EditProfileContent() {
   const { colors } = useTheme();
@@ -28,6 +29,8 @@ function EditProfileContent() {
   const [bio, setBio] = useState(user?.bio || '');
   const [profileImage, setProfileImage] = useState(user?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -35,18 +38,47 @@ function EditProfileContent() {
       return;
     }
 
+    if (!user?.id) {
+      feedback.error('Error', 'User not found');
+      return;
+    }
+
     setIsLoading(true);
     feedback.buttonPress(); // Haptic feedback for button press
     
     try {
+      let finalAvatarUrl = profileImage;
+      
+      // If user selected a new image, upload it first
+      if (selectedImageUri && selectedImageUri !== profileImage) {
+        setIsUploadingImage(true);
+        console.log('Uploading new avatar image...');
+        
+        const uploadResult = await storageBucket.uploadAvatarRN(user.id, selectedImageUri);
+        
+        if (uploadResult.success && uploadResult.url) {
+          finalAvatarUrl = uploadResult.url;
+          setProfileImage(uploadResult.url);
+          console.log('Avatar uploaded successfully:', uploadResult.url);
+        } else {
+          console.error('Failed to upload avatar:', uploadResult.error);
+          feedback.error('Upload Error', uploadResult.error || 'Failed to upload image');
+          return;
+        }
+        
+        setIsUploadingImage(false);
+      }
+
+      // Update profile with the new data
       const success = await updateProfile({
         full_name: name,
         bio: bio || null,
-        avatar_url: profileImage !== 'https://randomuser.me/api/portraits/men/32.jpg' ? profileImage : null,
+        avatar_url: finalAvatarUrl !== 'https://randomuser.me/api/portraits/men/32.jpg' ? finalAvatarUrl : null,
       });
 
       if (success) {
         feedback.success('Success!', 'Profile updated successfully');
+        setSelectedImageUri(null); // Clear selected image
         setTimeout(() => router.push('/settings'), 500); // Small delay for user to see toast
       } else {
         feedback.error('Error', 'Failed to update profile. Please try again.');
@@ -56,6 +88,7 @@ function EditProfileContent() {
       feedback.error('Error', 'Failed to update profile. Please try again.');
     } finally {
       setIsLoading(false);
+      setIsUploadingImage(false);
     }
   };
 
@@ -104,10 +137,13 @@ function EditProfileContent() {
           });
 
       if (!result.canceled && result.assets[0]) {
-        setProfileImage(result.assets[0].uri);
-        feedback.success('Photo Updated', 'Profile picture changed successfully');
+        const imageUri = result.assets[0].uri;
+        setProfileImage(imageUri);
+        setSelectedImageUri(imageUri);
+        feedback.success('Photo Selected', 'Save your profile to upload the new picture');
       }
     } catch (error) {
+      console.error('Error picking image:', error);
       feedback.error('Error', 'Failed to pick image');
     }
   };
@@ -230,11 +266,11 @@ function EditProfileContent() {
 
           {/* Save Button */}
           <Button
-            title="Save Changes"
+            title={isUploadingImage ? "Uploading Image..." : "Save Changes"}
             variant="primary"
             onPress={handleSave}
-            disabled={isLoading}
-            loading={isLoading}
+            disabled={isLoading || isUploadingImage}
+            loading={isLoading || isUploadingImage}
             style={styles.saveButton}
           />
         </ScrollView>

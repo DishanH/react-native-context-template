@@ -47,7 +47,7 @@ export function CustomDrawerContent(props: any) {
         <View style={styles.userSection}>
           <View style={[styles.avatarContainer, { borderColor: colors.primary + '50' }]}>
             <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+              source={{ uri: user?.avatar_url || "https://randomuser.me/api/portraits/men/32.jpg" }}
               style={styles.avatar}
               resizeMode="cover"
             />
