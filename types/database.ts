@@ -249,11 +249,7 @@ export interface AppUser {
 }
 
 // Database operation response types
-export interface DatabaseResponse<T> {
-  data: T | null
-  error: Error | null
-  success: boolean
-}
+// Use DatabaseResponse from `lib/database/core/base-repository` to avoid duplication
 
 // Query filter types for database operations
 export interface ProfileFilters {

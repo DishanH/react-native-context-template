@@ -28,7 +28,7 @@ export class SyncService {
     let failed = 0;
 
     try {
-      const queue = await storage.get('sync_queue', true) || [];
+      let queue: SyncQueueItem[] = (await storage.get('sync_queue', true)) || [];
       const pendingItems = queue.filter((item: SyncQueueItem) => 
         item.sync_status === 'pending' && item.attempts < 3
       );
@@ -39,9 +39,9 @@ export class SyncService {
         try {
           await this.syncQueueItem(item);
           
-          // Remove successful item from queue
-          const updatedQueue = queue.filter((q: SyncQueueItem) => q.id !== item.id);
-          await storage.set('sync_queue', updatedQueue);
+          // Remove successful item from queue (update in-memory queue first)
+          queue = queue.filter((q: SyncQueueItem) => q.id !== item.id);
+          await storage.set('sync_queue', queue);
           processed++;
           
           console.log(`Synced: ${item.table_name} ${item.operation} for ${item.record_id}`);
@@ -53,10 +53,9 @@ export class SyncService {
           item.sync_status = item.attempts >= 3 ? 'failed' : 'pending';
           item.updated_at = new Date().toISOString();
           
-          const updatedQueue = queue.map((q: SyncQueueItem) => 
-            q.id === item.id ? item : q
-          );
-          await storage.set('sync_queue', updatedQueue);
+          // Update the item in the in-memory queue and persist
+          queue = queue.map((q: SyncQueueItem) => (q.id === item.id ? item : q));
+          await storage.set('sync_queue', queue);
           failed++;
         }
       }
@@ -137,6 +136,15 @@ export class SyncService {
     const supabase = this.client.getClient();
     if (!supabase) throw new Error('Supabase not available');
 
+    const resolvePrimaryKey = (tableName: string): string => {
+      switch (tableName) {
+        case 'subscriptions':
+          return 'user_id';
+        default:
+          return 'id';
+      }
+    };
+
     switch (item.operation) {
       case 'insert':
         const { error: insertError } = await supabase
@@ -154,20 +162,24 @@ export class SyncService {
             });
           if (updateError) throw updateError;
         } else {
+          const primaryKey = resolvePrimaryKey(item.table_name);
           const { error: updateError } = await supabase
             .from(item.table_name)
             .update(item.data)
-            .eq('id', item.record_id);
+            .eq(primaryKey, item.record_id);
           if (updateError) throw updateError;
         }
         break;
 
       case 'delete':
-        const { error: deleteError } = await supabase
-          .from(item.table_name)
-          .delete()
-          .eq('id', item.record_id);
-        if (deleteError) throw deleteError;
+        {
+          const primaryKey = resolvePrimaryKey(item.table_name);
+          const { error: deleteError } = await supabase
+            .from(item.table_name)
+            .delete()
+            .eq(primaryKey, item.record_id);
+          if (deleteError) throw deleteError;
+        }
         break;
 
       default:

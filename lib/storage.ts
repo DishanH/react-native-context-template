@@ -397,8 +397,8 @@ export const storage = {
       let stringValue = typeof value !== 'string' ? JSON.stringify(value) : value;
       let size = new Blob([stringValue]).size;
       
-      // Special handling for user_data if it's too large
-      if (key === 'user_data' && size > 2048) {
+      // Special handling for userData if it's too large
+      if (key === STORAGE_KEYS.USER_DATA && size > 2048) {
         console.warn(`User data is ${size} bytes, applying aggressive optimization...`);
         
         // Store only essential fields for user_data
@@ -414,8 +414,8 @@ export const storage = {
         console.log(`Optimized user data to ${size} bytes (essential fields only)`);
       }
       
-      // Debug: Log the actual size and content being stored for user_data
-      if (key === 'user_data') {
+      // Debug: Log the actual size and content being stored for userData
+      if (key === STORAGE_KEYS.USER_DATA) {
         console.log(`Storing ${key}: ${size} bytes`);
         if (size > 1500) { // Log details if approaching the limit
           console.log('User data content');

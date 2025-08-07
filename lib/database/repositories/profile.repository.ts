@@ -28,7 +28,7 @@ export class ProfileRepository extends BaseRepository {
       },
       // Offline fallback
       async () => {
-        const localData = await storage.getUserData();
+        const localData = await storage.get(`profile_${userId}`, true);
         return localData as Profile;
       }
     );
@@ -49,47 +49,24 @@ export class ProfileRepository extends BaseRepository {
     };
 
     return this.executeWithFallback(
-      // Online operation
+      // Online operation (typed direct insert)
       async () => {
         const supabase = this.client.getClient();
         if (!supabase) throw new Error('Supabase client not available');
 
-        // Try using the RPC function first
-        try {
-          const { error: rpcError } = await supabase
-            .rpc('handle_new_user_manual', {
-              user_id: userId,
-              user_email: profileInput.email || '',
-              user_full_name: profileInput.full_name || profileInput.email?.split('@')[0] || 'User'
-            });
+        const { data, error } = await supabase
+          .from('profiles')
+          .insert([newProfile])
+          .select()
+          .single();
 
-          if (rpcError) throw rpcError;
-
-          // Get the created profile
-          const { data: fetchedProfile, error: getError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
-
-          if (getError) throw getError;
-          return fetchedProfile;
-        } catch {
-          // Fallback to direct insert
-          const { data, error } = await supabase
-            .from('profiles')
-            .insert([newProfile])
-            .select()
-            .single();
-
-          if (error) throw error;
-          return data;
-        }
+        if (error) throw error;
+        return data;
       },
       // Offline fallback
       async () => {
         // Store locally for sync later
-        await storage.setUserData(newProfile as any);
+        await storage.set(`profile_${userId}`, newProfile);
         return newProfile as Profile;
       },
       // Sync data
@@ -107,37 +84,26 @@ export class ProfileRepository extends BaseRepository {
         const supabase = this.client.getClient();
         if (!supabase) throw new Error('Supabase client not available');
 
-        // Try using the RPC function first
-        try {
-          const { data, error } = await supabase
-            .rpc('update_user_profile', {
-              profile_data: updates as any
-            });
+        // Direct update
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId)
+          .select()
+          .single();
 
-          if (error) throw error;
-          return data;
-        } catch {
-          // Fallback to direct update
-          const { data, error } = await supabase
-            .from('profiles')
-            .update({
-              ...updates,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', userId)
-            .select()
-            .single();
-
-          if (error) throw error;
-          return data;
-        }
+        if (error) throw error;
+        return data;
       },
       // Offline fallback
       async () => {
         // Update local data
-        const currentData = await storage.getUserData() || {};
+        const currentData = (await storage.get(`profile_${userId}`, true)) || {};
         const updatedData = { ...currentData, ...updates };
-        await storage.setUserData(updatedData);
+        await storage.set(`profile_${userId}`, updatedData);
         return updatedData as Profile;
       },
       // Sync data

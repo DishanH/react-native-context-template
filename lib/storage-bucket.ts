@@ -31,29 +31,20 @@ class StorageBucketManager {
     }
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      
-      // Get file info and create file object
       const timestamp = Date.now();
       const finalFileName = fileName || `avatar_${timestamp}.jpg`;
       const filePath = `${userId}/${finalFileName}`;
 
-      // Create file object for upload
-      const file = {
-        uri: fileUri,
-        type: 'image/jpeg', // Default to JPEG for compatibility
-        name: finalFileName,
-      } as any;
+      // For web, fetch the fileUri and convert to Blob
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
 
-      formData.append('file', file);
-
-      // Upload file to Supabase Storage
-      const { data, error } = await this.supabase.storage
+      const { error } = await this.supabase.storage
         .from(AVATAR_BUCKET)
-        .upload(filePath, formData, {
+        .upload(filePath, blob, {
           cacheControl: '3600',
-          upsert: true, // Replace existing file if it exists
+          upsert: true,
+          contentType: blob.type || 'image/jpeg',
         });
 
       if (error) {
@@ -106,7 +97,7 @@ class StorageBucketManager {
       const filePath = `${userId}/${finalFileName}`;
 
       // Upload to Supabase Storage
-      const { data, error } = await this.supabase.storage
+      const { error } = await this.supabase.storage
         .from(AVATAR_BUCKET)
         .upload(filePath, blob, {
           cacheControl: '3600',
