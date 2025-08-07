@@ -15,9 +15,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.rncontexttemplate.app",
@@ -28,11 +26,12 @@
         "NSCameraUsageDescription": "This app uses the camera to capture photos for profile pictures and image sharing.",
         "NSMicrophoneUsageDescription": "This app uses the microphone for voice input and audio recording features.",
         "NSFaceIDUsageDescription": "Use Face ID to securely authenticate and access your account.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       },
-      "associatedDomains": [
-        "applinks:react-native-context-template.dev"
-      ],
+      "associatedDomains": ["applinks:react-native-context-template.dev"],
       "appStoreUrl": "https://apps.apple.com/app/react-native-context-template/id123456789"
     },
     "android": {
@@ -61,10 +60,7 @@
               "host": "react-native-context-template.dev"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
       "playStoreUrl": "https://play.google.com/store/apps/details?id=com.rncontexttemplate.app"
@@ -123,14 +119,7 @@
     "extra": {
       "eas": {
         "projectId": "c38dd621-65c6-40e6-831b-b4d78679207d"
-      },
-      "router": {}
-    },
-    "updates": {
-      "url": ""
-    },
-    "runtimeVersion": {
-      "policy": ""
+      }
     }
   }
 }

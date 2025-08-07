@@ -539,4 +539,6 @@ eas build:configure
 add development:simulator profile to eas.json
 eas build --profile=development:simulator --platform=ios
 
+
+eas build --profile=development:simulator --platform ios --local
 npx expo start --dev-client
