@@ -159,8 +159,8 @@ class DatabaseManager {
 
         if (error) throw error;
         
-        // Update local cache
-        await storage.setUserData(data);
+        // Note: User data storage is handled in AuthContext to avoid duplication
+        // and optimize for SecureStore size limits
         return { data, error: null, success: true };
       } catch (error) {
         console.error('Error fetching profile from Supabase:', error);
@@ -175,11 +175,8 @@ class DatabaseManager {
   }
 
   async updateProfile(userId: string, updates: Partial<Profile>): Promise<DatabaseResponse<Profile>> {
-    // Update locally first
-    const currentProfile = await storage.getUserData();
-    const updatedProfile = { ...currentProfile, ...updates, updated_at: new Date().toISOString() };
-    await storage.setUserData(updatedProfile);
-
+    // Note: Local user data storage is handled in AuthContext to optimize for SecureStore limits
+    
     if (this.isSupabaseAvailable()) {
       try {
         // First try to update using the function
@@ -212,17 +209,17 @@ class DatabaseManager {
       } catch (error) {
         console.error('Error updating profile in Supabase:', error);
         await this.addToSyncQueue(TABLES.PROFILES, userId, 'update', updates);
-        return { data: updatedProfile as Profile, error: error as Error, success: false };
+        return { data: null, error: error as Error, success: false };
       }
     } else {
       await this.addToSyncQueue(TABLES.PROFILES, userId, 'update', updates);
     }
 
-    return { data: updatedProfile as Profile, error: null, success: true };
+    return { data: null, error: null, success: true };
   }
 
   async createProfile(userId: string, profileInput: Partial<Profile>): Promise<DatabaseResponse<Profile>> {
-    // Save locally first
+    // Note: User data storage is handled in AuthContext to optimize for SecureStore limits
     const newProfile: Profile = {
       id: userId,
       email: profileInput.email || '',
@@ -232,7 +229,6 @@ class DatabaseManager {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    await storage.setUserData(newProfile);
 
     if (this.isSupabaseAvailable()) {
       try {
@@ -414,6 +410,15 @@ class DatabaseManager {
 
     // Store in local sync queue
     const currentQueue = await storage.get('sync_queue', true) || [];
+    
+    // Limit queue size to prevent storage overflow (max 100 items)
+    const MAX_QUEUE_SIZE = 100;
+    if (currentQueue.length >= MAX_QUEUE_SIZE) {
+      console.warn(`Sync queue is at maximum size (${MAX_QUEUE_SIZE}). Removing oldest items.`);
+      // Remove the oldest items (FIFO)
+      currentQueue.splice(0, currentQueue.length - MAX_QUEUE_SIZE + 1);
+    }
+    
     currentQueue.push(queueItem);
     await storage.set('sync_queue', currentQueue);
   }

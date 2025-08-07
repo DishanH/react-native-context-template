@@ -169,9 +169,37 @@ expo install --fix
 ### Navigation Issues
 If you remove demo screens and have navigation errors:
 
-1. Update `app/_layout.tsx` to remove references to deleted screens
-2. Update tab configurations to point to your new screens
-3. Check `app/(tabs)/_layout.tsx` for tab definitions
+1. Update the `RootNavigator.tsx` to remove references to deleted screens
+2. Check `app/(tabs)/_layout.tsx` for tab references
+3. Update any deep links or navigation references
+
+### "User not authenticated" Console Messages
+You may see console messages like "User not authenticated, saving preferences locally only" when:
+
+1. **First app launch**: Before user signs up or logs in
+2. **User logged out**: When preferences are updated while not authenticated
+3. **Theme changes**: When system theme changes trigger preference updates
+
+**This is normal behavior**, not an error. The app automatically:
+- Saves preferences to local storage when not authenticated
+- Syncs to database once user logs in
+- Preserves user preferences across sessions
+
+**Note**: The previous error message "No user ID available for saving preferences" has been updated to be more user-friendly in recent versions.
+
+### SecureStore Size Limit Warnings
+You may see warnings about data being larger than 2048 bytes in SecureStore:
+
+**What it means**: Expo SecureStore has a 2048-byte limit per item. Large objects (like complete user sessions) can exceed this limit.
+
+**How we handle it**:
+- **User data optimization**: The app automatically excludes large session objects from storage
+- **Aggressive optimization**: If data is still too large, only essential fields (id, email, name, isAuthenticated) are stored
+- **Sync queue limiting**: Background sync queue is limited to 100 items maximum
+- **Field truncation**: Long text fields are automatically truncated for storage
+- **Full data in memory**: Complete user profile and session data remain available in app memory
+
+**No action needed**: These are informational warnings. The app will continue to work normally and automatically optimize data for storage constraints.
 
 ## Creating Your Own Template
 

@@ -18,14 +18,12 @@ export class GoogleAuthService {
    */
   static async signInWithGoogle(): Promise<boolean> {
     try {
-      console.log('signInWithGoogle', Platform.OS);
       // For web, use Supabase's built-in OAuth
       if (Platform.OS === 'web') {
         await database.signInWithProvider('google');
         return true;
       }
 
-      console.log('signInWithGoogle2', Platform.OS);
       // For mobile, use AuthSession for better control
       const supabaseClient = database.getSupabaseClient();
       if (!supabaseClient) {

@@ -96,6 +96,15 @@ const StorageHelper = {
    */
   setItem: async (key: string, value: string): Promise<void> => {
     try {
+      // Check if the value is too large for SecureStore (2048 bytes limit)
+      const valueSize = new Blob([value]).size;
+      if (Platform.OS !== 'web' && valueSize > 2048) {
+        console.warn(`Warning: Value for key "${key}" is ${valueSize} bytes, which exceeds SecureStore's 2048-byte limit. Consider optimizing the data structure.`);
+        
+        // For very large data, we could implement chunking or use AsyncStorage instead
+        // For now, we'll continue with SecureStore but log the warning
+      }
+
       // Web environment
       if (Platform.OS === 'web') {
         webStorage.setItem(key, value);
@@ -241,6 +250,36 @@ const StorageHelper = {
 
 // Storage utility functions with typed methods
 export const storage = {
+  // Utility: Get the byte size of a string
+  getByteSize: (str: string): number => {
+    return new Blob([str]).size;
+  },
+
+  // Utility: Optimize object for storage by removing unnecessary fields
+  optimizeForStorage: (obj: any, excludeKeys: string[] = []): any => {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    
+    const optimized = { ...obj };
+    excludeKeys.forEach(key => delete optimized[key]);
+    
+    // Remove undefined values to reduce size
+    Object.keys(optimized).forEach(key => {
+      if (optimized[key] === undefined) {
+        delete optimized[key];
+      }
+    });
+    
+    // Additional optimization: truncate long string fields
+    if (optimized.bio && optimized.bio.length > 100) {
+      optimized.bio = optimized.bio.substring(0, 100);
+    }
+    if (optimized.email && optimized.email.length > 100) {
+      optimized.email = optimized.email.substring(0, 100);
+    }
+    
+    return optimized;
+  },
+
   // Get authentication status
   async getAuthStatus(): Promise<boolean> {
     try {
@@ -355,7 +394,34 @@ export const storage = {
 
   async set(key: string, value: any): Promise<void> {
     try {
-      const stringValue = typeof value !== 'string' ? JSON.stringify(value) : value;
+      let stringValue = typeof value !== 'string' ? JSON.stringify(value) : value;
+      let size = new Blob([stringValue]).size;
+      
+      // Special handling for user_data if it's too large
+      if (key === 'user_data' && size > 2048) {
+        console.warn(`User data is ${size} bytes, applying aggressive optimization...`);
+        
+        // Store only essential fields for user_data
+        const essentialData = {
+          id: value.id,
+          email: value.email ? value.email.substring(0, 50) : '',
+          name: value.name ? value.name.substring(0, 50) : '',
+          isAuthenticated: value.isAuthenticated
+        };
+        
+        stringValue = JSON.stringify(essentialData);
+        size = new Blob([stringValue]).size;
+        console.log(`Optimized user data to ${size} bytes (essential fields only)`);
+      }
+      
+      // Debug: Log the actual size and content being stored for user_data
+      if (key === 'user_data') {
+        console.log(`Storing ${key}: ${size} bytes`);
+        if (size > 1500) { // Log details if approaching the limit
+          console.log('User data content:', JSON.stringify(JSON.parse(stringValue), null, 2));
+        }
+      }
+      
       await StorageHelper.setItem(key, stringValue);
     } catch (error) {
       console.error(`Error setting ${key}:`, error);

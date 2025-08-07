@@ -86,7 +86,16 @@ const SettingsContext = createContext<SettingsContextType>({
 // Hook to use the settings context
 export const useSettings = () => useContext(SettingsContext);
 
-// Provider component to wrap the app
+/**
+ * Settings Provider Component
+ * 
+ * Manages user preferences and settings with automatic fallback handling:
+ * - For authenticated users: syncs preferences to database and local storage
+ * - For unauthenticated users: saves preferences to local storage only
+ * 
+ * Note: It's normal to see "User not authenticated" messages on first app run
+ * or when the user is not logged in. This is expected behavior, not an error.
+ */
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
@@ -135,7 +144,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Save preferences to database and storage
   const savePreferences = async (updatedPreferences: UserPreferences) => {
     if (!user?.id) {
-      console.error('No user ID available for saving preferences');
+      // For unauthenticated users, save only to local storage
+      // This is normal behavior on first run or when not logged in
+      console.log('User not authenticated, saving preferences locally only');
+      try {
+        await storage.setUserPreferences(updatedPreferences);
+        setPreferences(updatedPreferences);
+      } catch (error) {
+        console.error('Error saving preferences to local storage:', error);
+      }
       return;
     }
 

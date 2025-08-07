@@ -181,15 +181,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             name: userProfile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
             isAuthenticated: true,
             avatar_url: userProfile?.avatar_url || session.user.user_metadata?.avatar_url || undefined,
-            bio: userProfile?.bio || undefined,
+            // Limit bio size for storage (full bio available in profile state)
+            bio: userProfile?.bio ? userProfile.bio.substring(0, 200) : undefined,
             full_name: userProfile?.full_name || undefined,
-            supabaseUser: session.user,
-            profile: userProfile || undefined,
+            // Note: supabaseUser and full profile are excluded from storage to avoid SecureStore 2048-byte limit
+            // They can be accessed via the session and profile state when needed
           };
           
-          setUser(userData);
+          setUser({...userData, supabaseUser: session.user, profile: userProfile || undefined});
           setProfile(userProfile);
-          await storage.set(USER_STORAGE_KEY, userData);
+          
+          // Optimize data for storage by removing undefined values
+          const optimizedUserData = storage.optimizeForStorage(userData);
+          // Note: If optimized data is still > 2048 bytes, storage.set will automatically
+          // use only essential fields (id, email, name, isAuthenticated) for persistence
+          await storage.set(USER_STORAGE_KEY, optimizedUserData);
           await storage.setAuthStatus(true);
           
           // Note: Navigation is handled by RootNavigator based on auth state
