@@ -42,7 +42,6 @@ const SignInScreen = () => {
     setAuthError(null);
 
     const result = await signIn(email, password);
-
     if (result.success) {
       Toast.show({
         type: 'success',
@@ -52,7 +51,7 @@ const SignInScreen = () => {
     } else if (result.error) {
       // For email verification errors, navigate to dedicated screen
       if (result.error.type === 'email_not_confirmed') {
-        router.push(`/auth/email-verification?email=${encodeURIComponent(email)}`);
+        router.push(`email-verification?email=${encodeURIComponent(email)}` as any);
         return;
 
       } else {

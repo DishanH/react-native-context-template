@@ -35,6 +35,18 @@ export default function AuthLayout() {
           title: 'Sign Up',
         }}
       />
+      <Stack.Screen 
+        name="email-verification" 
+        options={{
+          title: 'Email Verification',
+        }}
+      />
+      <Stack.Screen 
+        name="callback" 
+        options={{
+          title: 'Auth Callback',
+        }}
+      />
     </Stack>
   );
 } 

@@ -89,6 +89,7 @@ const SignUpScreen = () => {
 
   const handleRetrySignUp = () => {
     if (authError?.type === 'email_not_confirmed') {
+      console.log('email_not_confirmed', email);
       // Navigate to email verification screen
       router.push(`/auth/email-verification?email=${encodeURIComponent(email)}`);
     } else {
