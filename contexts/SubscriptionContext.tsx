@@ -51,9 +51,7 @@ type SubscriptionContextType = {
   getDaysUntilExpiry: () => number;
   
   // Subscription management
-  updatePaymentMethod: (paymentMethod: string) => Promise<boolean>;
   toggleAutoRenew: () => Promise<boolean>;
-  getUsageStats: () => Promise<any>;
 };
 
 /**
@@ -360,29 +358,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   /**
-   * Update payment method
-   */
-  const updatePaymentMethod = async (paymentMethod: string): Promise<boolean> => {
-    if (!subscription) return false;
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const updatedSubscription: UserSubscription = {
-        ...subscription,
-        payment_method: paymentMethod,
-        updated_at: new Date().toISOString(),
-      };
-
-      await saveSubscription(updatedSubscription);
-      return true;
-    } catch (error) {
-      console.error('Failed to update payment method:', error);
-      return false;
-    }
-  };
-
-  /**
    * Toggle auto-renew
    */
   const toggleAutoRenew = async (): Promise<boolean> => {
@@ -447,28 +422,6 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   /**
-   * Get usage statistics (placeholder for future implementation)
-   */
-  const getUsageStats = async (): Promise<any> => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Return mock usage data
-      return {
-        groupsUsed: subscription?.plan === 'free' ? 2 : 10,
-        groupsLimit: subscription?.plan === 'free' ? 3 : -1, // -1 means unlimited
-        storageUsed: 250, // MB
-        storageLimit: subscription?.plan === 'free' ? 500 : -1,
-        apiCallsUsed: 450,
-        apiCallsLimit: subscription?.plan === 'free' ? 1000 : -1,
-      };
-    } catch (error) {
-      console.error('Failed to get usage stats:', error);
-      return null;
-    }
-  };
-
-  /**
    * Context value
    */
   const value: SubscriptionContextType = {
@@ -483,9 +436,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     isPremiumUser,
     isTrialActive,
     getDaysUntilExpiry,
-    updatePaymentMethod,
     toggleAutoRenew,
-    getUsageStats,
   };
 
   return (

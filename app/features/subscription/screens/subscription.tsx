@@ -136,6 +136,7 @@ const SubscriptionContent = () => {
         return colors.success;
       case 'trial':
         return colors.warning;
+      case 'cancelled':
       case 'canceled':
       case 'expired':
         return colors.error;
@@ -150,6 +151,7 @@ const SubscriptionContent = () => {
         return 'check-circle';
       case 'trial':
         return 'clock';
+      case 'cancelled':
       case 'canceled':
       case 'expired':
         return 'times-circle';
@@ -160,10 +162,10 @@ const SubscriptionContent = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>        
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>
+          <Text style={[styles.loadingText, { color: colors.text }]}>          
             Loading subscription...
           </Text>
         </View>
@@ -172,7 +174,7 @@ const SubscriptionContent = () => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>      
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
@@ -188,7 +190,7 @@ const SubscriptionContent = () => {
             const isCurrentPlan = subscription?.plan === plan.id;
             
             return (
-              <View key={plan.id} style={[
+              <View key={plan.id} style={[                
                 styles.card, 
                 { 
                   backgroundColor: colors.surface, 
@@ -200,7 +202,7 @@ const SubscriptionContent = () => {
                 <View style={styles.planHeader}>
                   <View style={styles.planTitleSection}>
                     <View style={styles.planTitleRow}>
-                      <Text style={[styles.planName, { color: colors.text }]}>
+                      <Text style={[styles.planName, { color: colors.text }]}>                        
                         {plan.name}
                       </Text>
                       <View style={styles.badgeContainer}>
@@ -216,7 +218,7 @@ const SubscriptionContent = () => {
                         )}
                       </View>
                     </View>
-                    <Text style={[styles.planPrice, { color: colors.text }]}>
+                    <Text style={[styles.planPrice, { color: colors.text }]}>                      
                       {plan.price === 0 ? 'Free' : `$${plan.price}`}
                       {plan.price > 0 && <Text style={[styles.planInterval, { color: colors.textSecondary }]}>/{plan.interval}</Text>}
                     </Text>
@@ -266,20 +268,19 @@ const SubscriptionContent = () => {
         {subscription && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Subscription</Text>
-            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>              
               {/* Current Plan Status */}
-              <View style={styles.managementOption}>
-                <View style={[styles.iconContainer, { backgroundColor: getStatusColor(subscription.status) + '20' }]}>
+              <View style={[styles.managementOption, { paddingHorizontal: 12 }]}>
+                <View style={[styles.iconContainer, { backgroundColor: getStatusColor(subscription.status) + '20' }]}>                  
                   <FontAwesome5 name={getStatusIcon(subscription.status)} size={14} color={getStatusColor(subscription.status)} />
                 </View>
                 <View style={styles.optionContent}>
-                  <Text style={[styles.optionText, { color: colors.text }]}>
+                  <Text style={[styles.optionText, { color: colors.text }]}>                    
                     Current Plan: {availablePlans.find(p => p.id === subscription.plan)?.name || subscription.plan}
                   </Text>
-                  <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>                    
                     Status: {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
-                    {subscription.endDate && ` • Expires ${formatDate(subscription.endDate)}`}
+                    {subscription.end_date && ` • Expires ${formatDate(subscription.end_date)}`}
                   </Text>
                 </View>
               </View>
@@ -287,35 +288,35 @@ const SubscriptionContent = () => {
               {/* Paid Plan Management */}
               {subscription.plan !== 'free' && (
                 <>
-                  <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                  <View style={[styles.divider, { backgroundColor: colors.border, marginLeft: 50, marginRight: 16 }]} />
                   
                   {subscription.status === 'active' && (
                     <>
                       <TouchableOpacity
-                        style={[styles.managementOption]}
+                        style={[styles.managementOption, { paddingHorizontal: 12 }]}
                         onPress={() => {
                           feedback.buttonPress();
                           handleToggleAutoRenew();
                         }}
                         disabled={actionLoading === 'auto-renew'}
                       >
-                        <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                        <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>                          
                           <FontAwesome5 name="sync" size={14} color={colors.primary} />
                         </View>
                         <View style={styles.optionContent}>
-                          <Text style={[styles.optionText, { color: colors.text }]}>
-                            {subscription.autoRenew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
+                          <Text style={[styles.optionText, { color: colors.text }]}>                            
+                            {subscription.auto_renew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
                           </Text>
-                          <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                            {subscription.autoRenew ? 'Turn off automatic billing' : 'Automatically renew your subscription'}
+                          <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>                            
+                            {subscription.auto_renew ? 'Turn off automatic billing' : 'Automatically renew your subscription'}
                           </Text>
                         </View>
                         {actionLoading === 'auto-renew' && <ActivityIndicator size="small" color={colors.primary} />}
                       </TouchableOpacity>
 
-                      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                      <View style={[styles.divider, { backgroundColor: colors.border, marginLeft: 50, marginRight: 16 }]} />
 
-                      <View style={styles.managementButtonContainer}>
+                      <View style={[styles.managementButtonContainer, { paddingHorizontal: 12 }]}>
                         <Button
                           title="Cancel Subscription"
                           variant="destructive"
@@ -323,15 +324,15 @@ const SubscriptionContent = () => {
                           disabled={actionLoading === 'cancel'}
                           loading={actionLoading === 'cancel'}
                         />
-                        <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
+                        <Text style={[styles.managementHint, { color: colors.textSecondary }]}>                          
                           You&apos;ll keep access until your current period ends
                         </Text>
                       </View>
                     </>
                   )}
 
-                  {subscription.status === 'canceled' && (
-                    <View style={styles.managementButtonContainer}>
+                  {(subscription.status === 'cancelled' || subscription.status === 'canceled') && (
+                    <View style={[styles.managementButtonContainer, { paddingHorizontal: 12 }]}>
                       <Button
                         title="Renew Subscription"
                         variant="primary"
@@ -339,7 +340,7 @@ const SubscriptionContent = () => {
                         disabled={actionLoading === 'renew'}
                         loading={actionLoading === 'renew'}
                       />
-                      <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
+                      <Text style={[styles.managementHint, { color: colors.textSecondary }]}>                        
                         Reactivate your subscription
                       </Text>
                     </View>
@@ -350,10 +351,10 @@ const SubscriptionContent = () => {
               {/* Free Plan Management */}
               {subscription.plan === 'free' && (
                 <>
-                  <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                  <View style={[styles.divider, { backgroundColor: colors.border, marginLeft: 50, marginRight: 16 }]} />
                   
-                  <View style={styles.managementButtonContainer}>
-                    <Text style={[styles.managementHint, { color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }]}>
+                  <View style={[styles.managementButtonContainer, { paddingHorizontal: 12 }]}>
+                    <Text style={[styles.managementHint, { color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }]}>                      
                       Upgrade to unlock premium features and remove limitations
                     </Text>
                     <Button
@@ -470,17 +471,6 @@ const styles = StyleSheet.create({
         elevation: 3,
       },
     }),
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 20,
-  },
-  planCard: {
-    borderRadius: 12,
-    borderWidth: 2,
-    padding: 16,
-    marginBottom: 16,
   },
   planHeader: {
     marginBottom: 16,
@@ -621,11 +611,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    paddingHorizontal: 0,
   },
   divider: {
     height: 1,
-    marginVertical: 0,
   },
   managementButtonContainer: {
     paddingVertical: 16,

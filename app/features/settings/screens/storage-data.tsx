@@ -3,10 +3,12 @@ import { router } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import { Image } from 'expo-image';
 import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
 import { useTheme, useHeader } from '../../../../contexts';
 import { feedback } from '../../../../lib/feedback';
-import { storage } from '../../../../lib/storage';
+import { storage, StorageHelper, STORAGE_KEYS } from '../../../../lib/storage';
+import { database } from '../../../../lib/database';
 
 interface StorageInfo {
   appDataSize: string;
@@ -29,24 +31,80 @@ function StorageDataContent() {
   }, []);
 
   const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
+    if (bytes <= 0 || Number.isNaN(bytes)) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  };
+
+  const getDirectorySize = async (directoryUri?: string): Promise<number> => {
+    try {
+      if (!directoryUri) return 0;
+      const entries = await FileSystem.readDirectoryAsync(directoryUri);
+      let total = 0;
+      for (const name of entries) {
+        const child = directoryUri + name;
+        const info = await FileSystem.getInfoAsync(child);
+        if (info.exists) {
+          if ((info as any).isDirectory) {
+            total += await getDirectorySize(child + '/');
+          } else if (info.size) {
+            total += info.size;
+          }
+        }
+      }
+      return total;
+    } catch {
+      return 0;
+    }
+  };
+
+  const getSecureStoreSize = async (): Promise<number> => {
+    try {
+      if (Platform.OS === 'web') {
+        // localStorage total size
+        let bytes = 0;
+        try {
+          for (let i = 0; i < (localStorage?.length || 0); i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            const value = localStorage.getItem(key) ?? '';
+            bytes += storage.getByteSize(key) + storage.getByteSize(value);
+          }
+        } catch {}
+        return bytes;
+      }
+
+      const allKeysJson = await StorageHelper.getItem(STORAGE_KEYS.ALL_SECURE_STORE_KEYS);
+      if (!allKeysJson) return 0;
+      const keys: string[] = JSON.parse(allKeysJson);
+      let total = 0;
+      for (const key of keys) {
+        const value = (await StorageHelper.getItem(key)) ?? '';
+        total += storage.getByteSize(key) + storage.getByteSize(value);
+      }
+      return total;
+    } catch {
+      return 0;
+    }
   };
 
   const calculateStorageUsage = async () => {
     try {
-      // Simple estimation - most apps are small
-      const appDataEstimate = 1024 * 50; // ~50KB for app data
-      const cacheEstimate = 1024 * 200; // ~200KB for cache
-      const totalEstimate = appDataEstimate + cacheEstimate;
+      const [secureBytes, cacheBytes, docsBytes] = await Promise.all([
+        getSecureStoreSize(),
+        getDirectorySize(FileSystem.cacheDirectory || undefined),
+        getDirectorySize(FileSystem.documentDirectory || undefined),
+      ]);
+
+      const appDataBytes = secureBytes + docsBytes;
+      const totalBytes = appDataBytes + cacheBytes;
 
       setStorageInfo({
-        appDataSize: formatBytes(appDataEstimate),
-        cacheSize: formatBytes(cacheEstimate),
-        totalSize: formatBytes(totalEstimate),
+        appDataSize: formatBytes(appDataBytes),
+        cacheSize: formatBytes(cacheBytes),
+        totalSize: formatBytes(totalBytes),
       });
     } catch (error) {
       console.error('Error calculating storage usage:', error);
@@ -58,11 +116,61 @@ function StorageDataContent() {
     }
   };
 
+  const clearCacheFiles = async () => {
+    try {
+      // Clear expo-image caches
+      try {
+        await Image.clearDiskCache?.();
+        Image.clearMemoryCache?.();
+      } catch {}
+
+      const cacheDir = FileSystem.cacheDirectory;
+      if (!cacheDir) return;
+      const items = await FileSystem.readDirectoryAsync(cacheDir);
+      await Promise.all(
+        items.map(async (name) => {
+          const target = cacheDir + name;
+          try {
+            const info = await FileSystem.getInfoAsync(target);
+            if (info.exists) {
+              await FileSystem.deleteAsync(target, { idempotent: true });
+            }
+          } catch {}
+        })
+      );
+    } catch (e) {
+      console.error('Error clearing cache files:', e);
+      throw e;
+    }
+  };
+
+  const clearDocumentFiles = async () => {
+    try {
+      const docsDir = FileSystem.documentDirectory;
+      if (!docsDir) return;
+      const items = await FileSystem.readDirectoryAsync(docsDir);
+      await Promise.all(
+        items.map(async (name) => {
+          const target = docsDir + name;
+          try {
+            const info = await FileSystem.getInfoAsync(target);
+            if (info.exists) {
+              await FileSystem.deleteAsync(target, { idempotent: true });
+            }
+          } catch {}
+        })
+      );
+    } catch (e) {
+      console.error('Error clearing document files:', e);
+      throw e;
+    }
+  };
+
   const handleClearCache = () => {
     feedback.buttonPress();
     Alert.alert(
       'Clear Cache',
-      'This will clear temporary files and cached data.',
+      'This will clear temporary files and cached media. Your saved data will remain intact.',
       [
         {
           text: 'Cancel',
@@ -75,11 +183,9 @@ function StorageDataContent() {
           onPress: async () => {
             setIsClearing(true);
             try {
-              // Simulate cache clearing
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
+              await clearCacheFiles();
               feedback.success('Cache Cleared', 'Temporary files have been removed');
-              calculateStorageUsage();
+              await calculateStorageUsage();
             } catch (error) {
               console.error('Error clearing cache:', error);
               feedback.error('Error', 'Failed to clear cache. Please try again.');
@@ -96,7 +202,7 @@ function StorageDataContent() {
     feedback.buttonPress();
     Alert.alert(
       'Clear All Data',
-      'This will reset the app to its initial state. All your settings and data will be lost.',
+      'This will sign you out and reset the app to its initial state. All app data and settings stored on this device will be removed.',
       [
         {
           text: 'Cancel',
@@ -111,26 +217,23 @@ function StorageDataContent() {
               'Are you sure?',
               'This action cannot be undone.',
               [
-                {
-                  text: 'Cancel',
-                  style: 'cancel',
-                },
+                { text: 'Cancel', style: 'cancel' },
                 {
                   text: 'Yes, Clear All',
                   style: 'destructive',
                   onPress: async () => {
                     setIsClearing(true);
                     try {
-                      // Clear all app storage
+                      // Sign out and clear secure storage (sessions, user data, preferences)
+                      await database.signOut();
                       await storage.clearAll();
-                      
+                      // Clear app files (documents) and caches
+                      await Promise.all([clearDocumentFiles(), clearCacheFiles()]);
                       feedback.success('Data Cleared', 'App has been reset');
-                      calculateStorageUsage();
-                      
-                      // Navigate back to settings
+                      await calculateStorageUsage();
                       setTimeout(() => {
                         router.back();
-                      }, 1500);
+                      }, 1200);
                     } catch (error) {
                       console.error('Error clearing all data:', error);
                       feedback.error('Error', 'Failed to clear data. Please try again.');
@@ -159,45 +262,42 @@ function StorageDataContent() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Storage Usage</Text>
         
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={[styles.infoItem, { backgroundColor: colors.background }]}>
-            <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <FontAwesome5 name="mobile-alt" size={14} color={colors.primary} />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={[styles.optionText, { color: colors.text }]}>Total App Size</Text>
-              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                {storageInfo.totalSize}
-              </Text>
-            </View>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>        
+          <View style={[styles.infoItem, { backgroundColor: colors.background }]}>            
+            <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>              
+              <FontAwesome5 name="mobile-alt" size={14} color={colors.primary} />            
+            </View>            
+            <View style={styles.optionContent}>              
+              <Text style={[styles.optionText, { color: colors.text }]}>Total App Size</Text>              
+              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>{storageInfo.totalSize}              
+              </Text>            
+            </View>          
           </View>
           
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           
-          <View style={[styles.infoItem, { backgroundColor: colors.background }]}>
-            <View style={[styles.iconContainer, { backgroundColor: colors.info + '20' }]}>
-              <FontAwesome5 name="database" size={14} color={colors.info} />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={[styles.optionText, { color: colors.text }]}>App Data</Text>
-              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                Settings and user preferences • {storageInfo.appDataSize}
-              </Text>
-            </View>
+          <View style={[styles.infoItem, { backgroundColor: colors.background }]}>            
+            <View style={[styles.iconContainer, { backgroundColor: colors.info + '20' }]}>              
+              <FontAwesome5 name="database" size={14} color={colors.info} />            
+            </View>            
+            <View style={styles.optionContent}>              
+              <Text style={[styles.optionText, { color: colors.text }]}>App Data</Text>              
+              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>Secure storage and saved files • {storageInfo.appDataSize}              
+              </Text>            
+            </View>          
           </View>
           
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           
-          <View style={[styles.infoItem, { backgroundColor: colors.background }]}>
-            <View style={[styles.iconContainer, { backgroundColor: colors.warning + '20' }]}>
-              <FontAwesome5 name="archive" size={14} color={colors.warning} />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={[styles.optionText, { color: colors.text }]}>Cache</Text>
-              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                Temporary files and cached data • {storageInfo.cacheSize}
-              </Text>
-            </View>
+          <View style={[styles.infoItem, { backgroundColor: colors.background }]}>            
+            <View style={[styles.iconContainer, { backgroundColor: colors.warning + '20' }]}>              
+              <FontAwesome5 name="archive" size={14} color={colors.warning} />            
+            </View>            
+            <View style={styles.optionContent}>              
+              <Text style={[styles.optionText, { color: colors.text }]}>Cache</Text>              
+              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>Temporary files and cached media • {storageInfo.cacheSize}              
+              </Text>            
+            </View>          
           </View>
         </View>
       </View>
@@ -206,19 +306,18 @@ function StorageDataContent() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Actions</Text>
         
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>          
           <TouchableOpacity 
             style={styles.optionItem}
             onPress={handleClearCache}
             disabled={isClearing}
           >
-            <View style={[styles.iconContainer, { backgroundColor: colors.warning + '20' }]}>
-              <FontAwesome5 name="broom" size={14} color={colors.warning} />
+            <View style={[styles.iconContainer, { backgroundColor: colors.warning + '20' }]}>              
+              <FontAwesome5 name="broom" size={14} color={colors.warning} />            
             </View>
             <View style={styles.optionContent}>
               <Text style={[styles.optionText, { color: colors.text }]}>Clear Cache</Text>
-              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                {isClearing ? 'Clearing...' : 'Remove temporary files'}
+              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>{isClearing ? 'Clearing...' : 'Remove temporary files'}              
               </Text>
             </View>
           </TouchableOpacity>
@@ -234,14 +333,13 @@ function StorageDataContent() {
           onPress={handleClearAllData}
           disabled={isClearing}
         >
-          <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>
-            <FontAwesome5 name="trash-alt" size={14} color={colors.error} />
+          <View style={[styles.iconContainer, { backgroundColor: colors.error + '20' }]}>            
+            <FontAwesome5 name="trash-alt" size={14} color={colors.error} />          
           </View>
           <View style={styles.optionContent}>
             <Text style={[styles.dangerText, { color: colors.error }]}>Clear All Data</Text>
-            <Text style={[styles.dangerSubtext, { color: colors.error, opacity: 0.8 }]}>
-              {isClearing ? 'Clearing...' : 'Reset app to initial state'}
-            </Text>
+            <Text style={[styles.dangerSubtext, { color: colors.error, opacity: 0.8 }]}>{isClearing ? 'Clearing...' : 'Reset app to initial state'}            
+              </Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -322,7 +420,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    marginLeft: 72,
+    marginLeft: 50,
     marginRight: 16,
   },
   dangerSection: {
