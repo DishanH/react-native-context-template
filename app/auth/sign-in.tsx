@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -18,7 +18,6 @@ import Button from '../../src/shared/components/ui/Button';
 import { SocialAuthButtons } from '../../components/auth/SocialAuthButtons';
 import AuthErrorCard from '../../components/auth/AuthErrorCard';
 import { useAuth, useTheme } from '../../contexts';
-import { AuthError } from '../../contexts/AuthContext';
 
 const SignInScreen = () => {
   const { colors } = useTheme();
@@ -51,16 +50,19 @@ const SignInScreen = () => {
     } else if (result.error) {
       // For email verification errors, navigate to dedicated screen
       if (result.error.type === 'email_not_confirmed') {
-        router.push(`email-verification?email=${encodeURIComponent(email)}` as any);
+        // The auth context has already set pendingVerificationEmail
+        const targetPath = `/auth/email-verification?email=${encodeURIComponent(email)}`;
+        
+        // Small delay to ensure auth context state is updated
+        setTimeout(() => {
+          router.push(targetPath as any);
+        }, 100);
+        
         return;
-
       } else {
         // Handle cases where result.error might be empty or malformed
         const errorType = result.error?.type || 'generic';
         const errorMessage = result.error?.message || 'An error occurred. Please try again.';
-        
-
-
 
         setAuthError({
           type: errorType,

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,18 +8,16 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
 import Button from '../../src/shared/components/ui/Button';
 import EmailVerificationCard from '../../components/auth/EmailVerificationCard';
 import { useAuth, useTheme } from '../../contexts';
 
 const EmailVerificationScreen = () => {
   const { colors } = useTheme();
-  const { resendVerificationEmail } = useAuth();
+  const { setPendingVerificationEmail, pendingVerificationEmail } = useAuth();
   const params = useLocalSearchParams();
   
-  const email = typeof params.email === 'string' ? params.email : '';
-  const [lastResendTime, setLastResendTime] = useState<number | null>(null);
+  const email = typeof params.email === 'string' ? params.email : (pendingVerificationEmail || '');
 
   useEffect(() => {
     if (!email) {
@@ -29,10 +27,12 @@ const EmailVerificationScreen = () => {
   }, [email]);
 
   const handleBackToSignIn = () => {
+    setPendingVerificationEmail(null); // Clear pending verification
     router.replace('/auth/sign-in');
   };
 
   const handleGoToSignUp = () => {
+    setPendingVerificationEmail(null); // Clear pending verification
     router.replace('/auth/sign-up');
   };
 

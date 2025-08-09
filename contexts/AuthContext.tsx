@@ -44,6 +44,10 @@ type AuthContextType = {
   authError: AuthError | null;
   setAuthError: (error: AuthError | null) => void;
   
+  // Email verification state
+  pendingVerificationEmail: string | null;
+  setPendingVerificationEmail: (email: string | null) => void;
+  
   // Authentication methods with enhanced error handling
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signUp: (name: string, email: string, password: string) => Promise<AuthResult>;
@@ -143,6 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [authError, setAuthError] = useState<AuthError | null>(null);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
   /**
    * Convert Supabase user to app user format and handle storage
@@ -261,6 +266,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (supabaseUser && session) {
         // User object will be set via auth state change listener
+        setPendingVerificationEmail(null); // Clear pending verification
         return { success: true };
       }
       
@@ -273,6 +279,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     } catch (error) {
       const authError = parseAuthError(error);
+      // Set pending verification email if it's an email verification error
+      if (authError.type === 'email_not_confirmed') {
+        setPendingVerificationEmail(email);
+      }
       return { 
         success: false, 
         error: authError 
@@ -308,10 +318,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session) {
           // User is immediately signed in (auto-confirm enabled)
           console.log('User signed up and signed in automatically');
+          setPendingVerificationEmail(null); // Clear any pending verification
           return { success: true };
         } else {
           // User needs to verify email
           console.log('User created but needs email verification');
+          setPendingVerificationEmail(email); // Set pending verification email
           return { 
             success: true, 
             needsEmailVerification: true 
@@ -378,6 +390,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       // Clear Supabase session
       await database.signOut();
+      // Clear pending verification email
+      setPendingVerificationEmail(null);
       // User state will be cleared via auth state change listener
       // Navigation will be handled by RootNavigator
     } catch (error) {
@@ -385,6 +399,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fallback: clear user state manually if Supabase signOut fails
       setUser(null);
       setProfile(null);
+      setPendingVerificationEmail(null);
       await storage.remove(USER_STORAGE_KEY);
       await storage.setAuthStatus(false);
       // Note: We preserve onboarding status and user preferences during logout
@@ -454,6 +469,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     authError,
     setAuthError,
+    pendingVerificationEmail,
+    setPendingVerificationEmail,
     signIn,
     signUp,
     signOut,

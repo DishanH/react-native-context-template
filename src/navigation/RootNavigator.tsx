@@ -7,7 +7,7 @@ import { AuthenticatedLayout, UnauthenticatedLayout } from './layouts';
 
 // Main navigation component that handles authentication state
 export function RootNavigator() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, pendingVerificationEmail } = useAuth();
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,17 +31,29 @@ export function RootNavigator() {
   // Handle navigation based on auth and onboarding state
   useEffect(() => {
     if (isLoading || authLoading) return;
+
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('fromLogin') === 'true') return;
+
+    // Check current path to avoid redirecting from email verification page
+    if (window.location.pathname === '/auth/email-verification') {
+      return;
+    }
+
     if (!isOnboardingComplete) {
       // User hasn't completed onboarding
-      router.replace('/onboarding' as any);
-    } else if (!user?.isAuthenticated) {
-      // User completed onboarding but not authenticated
-      router.replace('/auth' as any);
-    } else {
+      router.push('/onboarding' as any);
+    } else if (user?.isAuthenticated) {
       // User is authenticated, go to main app
-      router.replace('/tabs' as any);
+      router.push('/tabs' as any);
+    } else if (pendingVerificationEmail) {
+      // User is pending email verification - allow them to stay on verification page
+      return; // Explicitly return to prevent any further navigation
+    } else {
+      // User completed onboarding but not authenticated and no pending verification
+      router.push('/auth' as any);
     }
-  }, [user, isOnboardingComplete, isLoading, authLoading]);
+  }, [user, isOnboardingComplete, isLoading, authLoading, pendingVerificationEmail]);
 
   // Show loading screen while determining initial route
   if (isLoading || authLoading) {
