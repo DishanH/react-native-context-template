@@ -2,6 +2,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
+import * as ImageManipulator from 'expo-image-manipulator';
 import {
     Alert,
     Image,
@@ -44,22 +45,21 @@ function EditProfileContent() {
     }
 
     setIsLoading(true);
-    feedback.buttonPress(); // Haptic feedback for button press
-    
+    //feedback.buttonPress(); // Haptic feedback for button press
+    //console.log('Saving profile...');
     try {
       let finalAvatarUrl = profileImage;
-      
-      // If user selected a new image, upload it first
-      if (selectedImageUri && selectedImageUri !== profileImage) {
+      // If user selected a new image, upload it first (avoid comparing to preview uri)
+      if (selectedImageUri) {
         setIsUploadingImage(true);
-        console.log('Uploading new avatar image...');
+        //console.log('Uploading new avatar image...');
         
         const uploadResult = await storageBucket.uploadAvatarRN(user.id, selectedImageUri);
         
         if (uploadResult.success && uploadResult.url) {
           finalAvatarUrl = uploadResult.url;
           setProfileImage(uploadResult.url);
-          console.log('Avatar uploaded successfully:', uploadResult.url);
+          //console.log('Avatar uploaded successfully:', uploadResult.url);
         } else {
           console.error('Failed to upload avatar:', uploadResult.error);
           feedback.error('Upload Error', uploadResult.error || 'Failed to upload image');
@@ -137,10 +137,31 @@ function EditProfileContent() {
           });
 
       if (!result.canceled && result.assets[0]) {
-        const imageUri = result.assets[0].uri;
-        setProfileImage(imageUri);
-        setSelectedImageUri(imageUri);
-        feedback.success('Photo Selected', 'Save your profile to upload the new picture');
+        const asset = result.assets[0];
+        const imageUri = asset.uri;
+
+        // Ensure square crop and downscale to max 600px for avatars
+        const actions: ImageManipulator.Action[] = [];
+        const sourceWidth = asset.width ?? 0;
+        const sourceHeight = asset.height ?? 0;
+        if (sourceWidth > 0 && sourceHeight > 0 && sourceWidth !== sourceHeight) {
+          const size = Math.min(sourceWidth, sourceHeight);
+          const cropX = Math.max(0, Math.floor((sourceWidth - size) / 2));
+          const cropY = Math.max(0, Math.floor((sourceHeight - size) / 2));
+          actions.push({ crop: { originX: cropX, originY: cropY, width: size, height: size } });
+        }
+        actions.push({ resize: { width: 600, height: 600 } });
+
+        const processed = await ImageManipulator.manipulateAsync(
+          imageUri,
+          actions,
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        const finalUri = processed.uri ?? imageUri;
+        setProfileImage(finalUri);
+        setSelectedImageUri(finalUri);
+        //feedback.success('Photo Selected', 'Save your profile to upload the new picture');
       }
     } catch (error) {
       console.error('Error picking image:', error);

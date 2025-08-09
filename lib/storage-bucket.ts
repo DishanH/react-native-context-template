@@ -1,4 +1,5 @@
 import { database } from './database';
+import * as FileSystem from 'expo-file-system';
 
 /**
  * Supabase Storage Manager for User Avatars
@@ -81,12 +82,15 @@ class StorageBucketManager {
     }
 
     try {
-      // Read file as blob for React Native
-      const response = await fetch(fileUri);
-      const blob = await response.blob();
-      
+      // Read file as base64 to avoid 0KB blobs in RN fetch -> blob
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const bytes = this.base64ToUint8Array(base64);
+
       // Validate file size
-      if (blob.size > MAX_FILE_SIZE) {
+      if (bytes.byteLength > MAX_FILE_SIZE) {
         return { success: false, error: 'File size too large (max 5MB)' };
       }
 
@@ -99,10 +103,10 @@ class StorageBucketManager {
       // Upload to Supabase Storage
       const { error } = await this.supabase.storage
         .from(AVATAR_BUCKET)
-        .upload(filePath, blob, {
+        .upload(filePath, bytes, {
           cacheControl: '3600',
           upsert: true,
-          contentType: blob.type || 'image/jpeg',
+          contentType: this.getMimeTypeFromExtension(extension),
         });
 
       if (error) {
@@ -262,6 +266,50 @@ class StorageBucketManager {
   private getFileExtension(uri: string): string | null {
     const match = uri.match(/\.([^.]+)$/);
     return match ? match[1].toLowerCase() : null;
+  }
+
+  private getMimeTypeFromExtension(extension: string): string {
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        // Map HEIC to JPEG to align with allowed types and broader compatibility
+        return 'image/jpeg';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  private base64ToUint8Array(base64: string): Uint8Array {
+    const base64Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    let bufferLength = base64.length * 0.75;
+    if (base64.endsWith('==')) bufferLength -= 2;
+    else if (base64.endsWith('=')) bufferLength -= 1;
+
+    const bytes = new Uint8Array(bufferLength);
+    let p = 0;
+
+    for (let i = 0; i < base64.length; i += 4) {
+      const encoded1 = base64Chars.indexOf(base64[i]);
+      const encoded2 = base64Chars.indexOf(base64[i + 1]);
+      const encoded3 = base64Chars.indexOf(base64[i + 2]);
+      const encoded4 = base64Chars.indexOf(base64[i + 3]);
+
+      const byte1 = (encoded1 << 2) | (encoded2 >> 4);
+      const byte2 = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+      const byte3 = ((encoded3 & 3) << 6) | encoded4;
+
+      bytes[p++] = byte1;
+      if (encoded3 !== 64) bytes[p++] = byte2;
+      if (encoded4 !== 64) bytes[p++] = byte3;
+    }
+
+    return bytes;
   }
 
   /**

@@ -42,11 +42,12 @@ const SignInScreen = () => {
 
     const result = await signIn(email, password);
     if (result.success) {
-      Toast.show({
-        type: 'success',
-        text1: 'Welcome back!',
-        text2: 'You have been signed in successfully',
-      });
+      // no need to show toast, we will show it in the home screen
+      // Toast.show({
+      //   type: 'success',
+      //   text1: 'Welcome back!',
+      //   text2: 'You have been signed in successfully',
+      // });
     } else if (result.error) {
       // For email verification errors, navigate to dedicated screen
       if (result.error.type === 'email_not_confirmed') {
