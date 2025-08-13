@@ -217,6 +217,28 @@ const StorageHelper = {
   },
 
   /**
+   * Get all storage keys
+   */
+  getAllKeys: async (): Promise<string[]> => {
+    try {
+      // Web environment
+      if (Platform.OS === 'web') {
+        return Promise.resolve(webStorage.getAllKeys());
+      }
+      
+      // React Native environment with SecureStore
+      const allKeysJson = await SecureStore.getItemAsync(STORAGE_KEYS.ALL_SECURE_STORE_KEYS);
+      if (allKeysJson) {
+        return JSON.parse(allKeysJson) as string[];
+      }
+      return [];
+    } catch (error) {
+      console.error('Error getting all keys:', error);
+      return [];
+    }
+  },
+
+  /**
    * Clear all storage
    */
   clearAll: async (): Promise<void> => {
@@ -434,6 +456,94 @@ export const storage = {
       await StorageHelper.removeItem(key);
     } catch (error) {
       console.error(`Error removing ${key}:`, error);
+    }
+    },
+
+  /**
+   * Clear all Supabase auth-related storage keys
+   * This ensures complete cleanup of auth tokens and prevents stale token errors
+   */
+  async clearSupabaseAuthData(): Promise<void> {
+    try {
+      console.log('Clearing Supabase auth data...');
+      
+      const allKeys = await StorageHelper.getAllKeys();
+      const supabaseKeys = allKeys.filter(key => 
+        key.startsWith('sb-') || 
+        key.startsWith('supabase.') ||
+        key.includes('auth-token') ||
+        key.includes('session') ||
+        key.includes('refresh')
+      );
+
+      console.log('Found Supabase auth keys:', supabaseKeys);
+
+      // Remove all Supabase-related keys
+      const removePromises = supabaseKeys.map(key => StorageHelper.removeItem(key));
+      await Promise.all(removePromises);
+
+      console.log('Cleared Supabase auth data successfully');
+    } catch (error) {
+      console.error('Error clearing Supabase auth data:', error);
+    }
+  },
+
+  /**
+   * Enhanced clear all with proper auth cleanup
+   */
+  async clearAuthData(): Promise<void> {
+    try {
+      // Clear app-specific auth data
+      await this.remove(STORAGE_KEYS.USER_DATA);
+      await this.setAuthStatus(false);
+      
+      // Clear Supabase auth tokens
+      await this.clearSupabaseAuthData();
+      
+      console.log('Auth data cleared successfully');
+    } catch (error) {
+      console.error('Error clearing auth data:', error);
+    }
+  },
+
+  /**
+   * Check and clean up potentially corrupted auth data on app startup
+   * This helps prevent issues with stale or partial token data
+   */
+  async validateAndCleanAuthData(): Promise<void> {
+    try {
+      const isAuthenticated = await this.getAuthStatus();
+      
+      if (isAuthenticated) {
+        // Check if we have valid user data
+        const userData = await this.get(STORAGE_KEYS.USER_DATA);
+        
+        if (!userData || !userData.id || !userData.email) {
+          console.log('Invalid user data found, clearing auth state');
+          await this.clearAuthData();
+          return;
+        }
+
+        // Get all keys to check for orphaned auth tokens
+        const allKeys = await StorageHelper.getAllKeys();
+        const supabaseKeys = allKeys.filter(key => 
+          key.startsWith('sb-') || 
+          key.startsWith('supabase.') ||
+          key.includes('auth-token') ||
+          key.includes('session') ||
+          key.includes('refresh')
+        );
+
+        // If we have Supabase keys but no user data, clean up
+        if (supabaseKeys.length > 0 && !userData) {
+          console.log('Found orphaned auth tokens, clearing them');
+          await this.clearSupabaseAuthData();
+        }
+      }
+    } catch (error) {
+      console.error('Error validating auth data:', error);
+      // If validation fails, clear everything to be safe
+      await this.clearAuthData();
     }
   }
 };

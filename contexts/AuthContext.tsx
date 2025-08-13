@@ -400,8 +400,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setProfile(null);
       setPendingVerificationEmail(null);
-      await storage.remove(USER_STORAGE_KEY);
-      await storage.setAuthStatus(false);
+      // Use enhanced auth cleanup to prevent stale token errors
+      await storage.clearAuthData();
       // Note: We preserve onboarding status and user preferences during logout
     } finally {
       setIsLoading(false);

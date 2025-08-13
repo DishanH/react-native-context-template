@@ -136,8 +136,8 @@ export const database = {
     if (supabase) {
       await supabase.auth.signOut();
     }
-    await storage.remove('userData');
-    await storage.setAuthStatus(false);
+   // Use enhanced auth cleanup to prevent stale token errors
+   await storage.clearAuthData();
   },
   getSupabaseClient() {
     return databaseClient.getClient();

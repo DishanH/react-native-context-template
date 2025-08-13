@@ -13,19 +13,23 @@ export function RootNavigator() {
 
   // Check onboarding status when app loads
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
+    const initializeApp = async () => {
       try {
+        // Validate and clean up any corrupted auth data first
+        await storage.validateAndCleanAuthData();
+
+        // Then check onboarding status
         const onboardingStatus = await storage.getOnboardingStatus();
         setIsOnboardingComplete(onboardingStatus);
       } catch (error) {
-        console.error('Error checking onboarding status:', error);
+        console.error('Error initializing app:', error);
         setIsOnboardingComplete(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkOnboardingStatus();
+    initializeApp();
   }, []);
 
   // Handle navigation based on auth and onboarding state

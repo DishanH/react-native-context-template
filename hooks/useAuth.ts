@@ -19,7 +19,23 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
       } catch (error) {
-        console.error('Error getting initial session:', error);
+  
+        // If there's a session/token error (like refresh token not found),
+        // clear any stale auth data to prevent repeated errors
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorMessage = (error as any).message?.toLowerCase() || '';
+          if (errorMessage.includes('refresh') || 
+              errorMessage.includes('token') || 
+              errorMessage.includes('session')) {
+            console.log('Clearing stale auth data due to token error');
+            const { storage } = await import('../lib/storage');
+            await storage.clearSupabaseAuthData();
+          }
+        }
+        
+        // Ensure clean state
+        setSession(null);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -36,7 +52,7 @@ export const useAuth = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   return { 

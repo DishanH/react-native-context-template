@@ -96,9 +96,29 @@ class DatabaseClient {
       return null;
     }
 
-    const { data: { session } } = await this.supabase!.auth.getSession();
-    return session;
-  }
+    try {
+      const { data: { session }, error } = await this.supabase!.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        
+        // If there's a token-related error, clear auth storage to prevent repeated errors
+        if (error.message?.toLowerCase().includes('refresh') || 
+            error.message?.toLowerCase().includes('token')) {
+          console.log('Clearing auth storage due to token error');
+          const { storage } = await import('../../storage');
+          await storage.clearSupabaseAuthData();
+        }
+        
+        return null;
+      }
+      
+      return session;
+    } catch (error) {
+      console.error('Error getting session:', error);
+      return null;
+    }
+   }
 
   /**
    * Subscribe to auth state changes
