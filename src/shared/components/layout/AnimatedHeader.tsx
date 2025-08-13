@@ -1,7 +1,10 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, interpolate } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+} from "react-native-reanimated";
 import { useScrollVisibility } from "../../../../contexts/ScrollContext";
 import { useHeader } from "../../../../contexts";
 
@@ -25,17 +28,15 @@ export default function AnimatedHeader({
   const { scrollY } = useScrollVisibility();
   const { headerHeight, safeAreaTop } = useHeader();
 
+  const isIOS = Platform.OS === "ios";
+  const rowHeight = Math.max(0, headerHeight - safeAreaTop);
+  const titleFontSize = isIOS ? 18 : 20;
   // Animated style for blur effect
   const animatedBlurStyle = useAnimatedStyle(() => {
     if (!enableBlur) return { opacity: 0 };
-    
-    const opacity = interpolate(
-      scrollY,
-      [0, 80, 150],
-      [0, 0.05, 0.1],
-      "clamp"
-    );
-    
+
+    const opacity = interpolate(scrollY, [0, 80, 150], [0, 0.05, 0.1], "clamp");
+
     return {
       opacity,
     };
@@ -48,19 +49,37 @@ export default function AnimatedHeader({
     };
   });
 
-
+  // Animated style for header shadow/elevation when scrolling
+  const animatedHeaderStyle = useAnimatedStyle(() => {
+    const shouldShowShadow = scrollY > 10;
+    
+    return Platform.OS === 'ios' ? {
+      shadowOpacity: interpolate(scrollY, [0, 50], [0, 0.1], "clamp"),
+    } : {
+      elevation: interpolate(scrollY, [0, 50], [0, 4], "clamp"),
+    };
+  });
 
   return (
-    <View style={[styles.headerContainer, { height: headerHeight }]}>
+    <Animated.View style={[
+      styles.headerContainer, 
+      { height: headerHeight },
+      animatedHeaderStyle,
+      {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+      }
+    ]}>
       {/* Original background with animated opacity */}
-      <Animated.View 
+      <Animated.View
         style={[
           StyleSheet.absoluteFill,
           { backgroundColor },
-          animatedBackgroundStyle
-        ]} 
+          animatedBackgroundStyle,
+        ]}
       />
-      
+
       {/* Blur overlay */}
       {enableBlur && (
         <Animated.View style={[StyleSheet.absoluteFill, animatedBlurStyle]}>
@@ -71,69 +90,83 @@ export default function AnimatedHeader({
           />
         </Animated.View>
       )}
-      
+
       {/* Content */}
       <View style={[styles.headerContent, { paddingTop: safeAreaTop }]}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
+        <View style={[styles.headerRow, { height: rowHeight }]}>
+          {/* Left section */}
+          <View style={[styles.headerLeft, { height: rowHeight }]}>
             {headerLeft}
           </View>
-          
-          <View style={styles.headerCenter}>
-            <Text style={[styles.headerTitle, { color: titleColor }]}>
+
+          {/* Absolutely positioned centered title */}
+          <View style={styles.headerCenterAbsolute}>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[
+                styles.headerTitle,
+                {
+                  color: titleColor,
+                  textAlign: "center",
+                  fontSize: titleFontSize,
+                },
+                isIOS
+                  ? { includeFontPadding: false, textAlignVertical: "center" }
+                  : null,
+              ]}
+            >
               {title}
             </Text>
           </View>
-          
-          <View style={styles.headerRight}>
+
+          {/* Right section */}
+          <View style={[styles.headerRight, { height: rowHeight }]}>
             {headerRight}
           </View>
         </View>
       </View>
-    </View>
+
+
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   headerContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 100,
-    ...(Platform.OS === 'ios' ? {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-    } : {
-      elevation: 4,
-    }),
   },
   headerContent: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: Platform.OS === 'ios' ? 44 : 56,
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
   },
   headerLeft: {
-    width: 60,
-    alignItems: 'flex-start',
-  },
-  headerCenter: {
+    alignItems: "flex-start",
     flex: 1,
-    alignItems: 'center',
+  },
+  headerCenterAbsolute: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    pointerEvents: "none", // Allow touches to pass through to left/right elements
   },
   headerRight: {
-    width: 60,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
+    flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-}); 
+});
