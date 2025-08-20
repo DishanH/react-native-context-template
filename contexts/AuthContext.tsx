@@ -151,14 +151,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   /**
    * Convert Supabase user to app user format and handle storage
+   * Now more resilient to errors and prevents race conditions
    */
   useEffect(() => {
     const updateUserState = async () => {
       try {
         if (session?.user) {
-          // Fetch the user's profile from the database
-          let profileResponse = await database.getProfile(session.user.id);
-          let userProfile = profileResponse.data;
+          console.log('Updating user state for authenticated user:', session.user.id);
+          
+          // Fetch the user's profile from the database with error handling
+          let userProfile = null;
+          try {
+            const profileResponse = await database.getProfile(session.user.id);
+            userProfile = profileResponse.data;
+          } catch (profileError) {
+            console.log('Error fetching profile, will create fallback:', profileError);
+          }
 
           // If profile doesn't exist, create it (fallback for trigger failure)
           if (!userProfile) {
@@ -177,6 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             } catch (createError) {
               console.error('Failed to create fallback profile:', createError);
+              // Continue with null profile - app should still work
             }
           }
 
@@ -196,23 +205,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser({...userData, supabaseUser: session.user, profile: userProfile || undefined});
           setProfile(userProfile);
           
-          // Optimize data for storage by removing undefined values
-          const optimizedUserData = storage.optimizeForStorage(userData);
-          // Note: If optimized data is still > 2048 bytes, storage.set will automatically
-          // use only essential fields (id, email, name, isAuthenticated) for persistence
-          await storage.set(USER_STORAGE_KEY, optimizedUserData);
-          await storage.setAuthStatus(true);
+          // Storage operations with error handling - only save if data actually changed
+          try {
+            // Check if user data has actually changed to avoid unnecessary saves
+            const currentStoredData = await storage.get(USER_STORAGE_KEY, true);
+            const hasDataChanged = !currentStoredData || 
+              currentStoredData.id !== userData.id ||
+              currentStoredData.email !== userData.email ||
+              currentStoredData.name !== userData.name;
+            
+            if (hasDataChanged) {
+              // Optimize data for storage by removing undefined values
+              const optimizedUserData = storage.optimizeForStorage(userData);
+              // Note: If optimized data is still > 2048 bytes, storage.set will automatically
+              // use only essential fields (id, email, name, isAuthenticated) for persistence
+              await storage.set(USER_STORAGE_KEY, optimizedUserData);
+              await storage.setAuthStatus(true);
+              console.log('User data saved to storage successfully');
+            } else {
+              console.log('User data unchanged, skipping storage save');
+            }
+          } catch (storageError) {
+            console.error('Failed to save user data to storage:', storageError);
+            // Don't throw - the app should continue working even if storage fails
+          }
           
           // Note: Navigation is handled by RootNavigator based on auth state
         } else {
+          console.log('Clearing user state - no session');
           setUser(null);
           setProfile(null);
-          await storage.remove(USER_STORAGE_KEY);
-          await storage.setAuthStatus(false);
+          
+          // Clear storage with error handling
+          try {
+            await storage.remove(USER_STORAGE_KEY);
+            await storage.setAuthStatus(false);
+            console.log('User data cleared from storage');
+          } catch (storageError) {
+            console.error('Failed to clear user data from storage:', storageError);
+            // Don't throw - continue with cleanup
+          }
           // Note: Navigation to auth screen is handled by RootNavigator
         }
       } catch (error) {
         console.error('Failed to update user state:', error);
+        // Don't set user to null on errors - could cause auth loops
+        // Let the current state remain until we have a definitive auth change
       } finally {
         setIsLoading(false);
       }
@@ -222,34 +260,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!authLoading) {
       updateUserState();
     }
-  }, [session, supabaseUser, authLoading]);
+  }, [session, authLoading]);
 
-  /**
-   * Save user data to storage whenever user state changes
-   * Ensures persistence across app restarts
-   */
-  useEffect(() => {
-    const saveUser = async () => {
-      try {
-        if (user) {
-          // Save user data and update auth status
-          await storage.set(USER_STORAGE_KEY, user);
-          await storage.setAuthStatus(true);
-        } else {
-          // Clear user data and auth status
-          await storage.remove(USER_STORAGE_KEY);
-          await storage.setAuthStatus(false);
-        }
-      } catch (error) {
-        console.error('Failed to save user to storage:', error);
-      }
-    };
-
-    // Don't save during initial load
-    if (!isLoading) {
-      saveUser();
-    }
-  }, [user, isLoading]);
+  // Note: Storage is now handled only in the main user update effect above
+  // This eliminates double storage writes and race conditions
 
   /**
    * Sign in with email and password using Supabase

@@ -457,7 +457,7 @@ export const storage = {
     } catch (error) {
       console.error(`Error removing ${key}:`, error);
     }
-    },
+  },
 
   /**
    * Clear all Supabase auth-related storage keys
@@ -509,41 +509,55 @@ export const storage = {
   /**
    * Check and clean up potentially corrupted auth data on app startup
    * This helps prevent issues with stale or partial token data
+   * NOTE: This is now much less aggressive and gives Supabase time to restore session
    */
-  async validateAndCleanAuthData(): Promise<void> {
+  async validateAndCleanAuthData(): Promise<{ shouldSignOut: boolean }> {
     try {
       const isAuthenticated = await this.getAuthStatus();
       
-      if (isAuthenticated) {
-        // Check if we have valid user data
-        const userData = await this.get(STORAGE_KEYS.USER_DATA);
-        
-        if (!userData || !userData.id || !userData.email) {
-          console.log('Invalid user data found, clearing auth state');
-          await this.clearAuthData();
-          return;
-        }
+      // If user is not marked as authenticated locally, skip validation
+      // Let Supabase handle session restoration naturally
+      if (!isAuthenticated) {
+        return { shouldSignOut: false };
+      }
 
-        // Get all keys to check for orphaned auth tokens
-        const allKeys = await StorageHelper.getAllKeys();
-        const supabaseKeys = allKeys.filter(key => 
-          key.startsWith('sb-') || 
-          key.startsWith('supabase.') ||
-          key.includes('auth-token') ||
-          key.includes('session') ||
-          key.includes('refresh')
-        );
+      // Get all keys to check for specific token corruption issues
+      const allKeys = await StorageHelper.getAllKeys();
+      const supabaseKeys = allKeys.filter(key => 
+        key.startsWith('sb-') || 
+        key.startsWith('supabase.')
+      );
 
-        // If we have Supabase keys but no user data, clean up
-        if (supabaseKeys.length > 0 && !userData) {
-          console.log('Found orphaned auth tokens, clearing them');
-          await this.clearSupabaseAuthData();
+      // Only clear if we have obvious signs of corruption:
+      // 1. Many stale Supabase keys but no current auth status
+      // 2. Specific error patterns that indicate token corruption
+      if (supabaseKeys.length > 5 && !isAuthenticated) {
+        console.log('Found many orphaned auth tokens without auth status, cleaning up');
+        await this.clearSupabaseAuthData();
+        return { shouldSignOut: true };
+      }
+
+      // Check for specific corruption patterns (malformed tokens, etc.)
+      // This is much more conservative than before
+      for (const key of supabaseKeys) {
+        try {
+          const value = await StorageHelper.getItem(key);
+          if (value && value.includes('undefined') || value === 'null') {
+            console.log(`Found corrupted token at ${key}, clearing auth data`);
+            await this.clearSupabaseAuthData();
+            return { shouldSignOut: true };
+          }
+        } catch (error) {
+          // Skip individual key errors
+          continue;
         }
       }
+
+      return { shouldSignOut: false };
     } catch (error) {
       console.error('Error validating auth data:', error);
-      // If validation fails, clear everything to be safe
-      await this.clearAuthData();
+      // Don't clear everything on validation errors - be more conservative
+      return { shouldSignOut: false };
     }
   }
 };
