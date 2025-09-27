@@ -30,15 +30,12 @@ export function RootNavigator() {
     initializeApp();
   }, []);
 
-  // Delayed auth validation - only after Supabase has had time to restore session
+  // Fast auth validation - run immediately when auth loading completes
   useEffect(() => {
     if (!authLoading && !initialValidationDone) {
       const validateAuth = async () => {
         try {
-          // Wait a bit for Supabase session restoration to complete
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // Now run validation, but much less aggressively
+          // Run validation immediately without delay to prevent flash
           const { shouldSignOut } = await storage.validateAndCleanAuthData();
           
           // If auth data was corrupted and cleared, trigger sign out in auth context
@@ -53,12 +50,13 @@ export function RootNavigator() {
             }
           }
         } catch (error) {
-          console.error('Error in delayed auth validation:', error);
+          console.error('Error in auth validation:', error);
         } finally {
           setInitialValidationDone(true);
         }
       };
 
+      // Always run validation immediately to prevent delays
       validateAuth();
     }
   }, [authLoading, initialValidationDone]);
@@ -82,37 +80,33 @@ export function RootNavigator() {
     
     if (shouldSkipNavigation) return;
 
-    // Add small delay to prevent navigation conflicts during auth state transitions
-    const navigateWithDelay = (path: string) => {
-      setTimeout(() => {
-        router.push(path as any);
-      }, 100);
-    };
-
+    // Navigate immediately without delay to prevent flash
     if (!isOnboardingComplete) {
       // User hasn't completed onboarding
-      navigateWithDelay('/onboarding');
-    } else if (user?.isAuthenticated) {
+      router.replace('/onboarding' as any);
+    } else if (user?.isAuthenticated === true) {
       // User is authenticated, go to main app
-      navigateWithDelay('/tabs');
+      router.replace('/tabs' as any);
     } else if (pendingVerificationEmail) {
       // User is pending email verification - allow them to stay on verification page
       return; // Explicitly return to prevent any further navigation
     } else {
       // User completed onboarding but not authenticated and no pending verification
-      navigateWithDelay('/auth');
+      router.replace('/auth' as any);
     }
   }, [user, isOnboardingComplete, isLoading, authLoading, pendingVerificationEmail, initialValidationDone]);
 
-  // Show loading screen while determining initial route
-  if (isLoading || authLoading) {
+  // Show loading screen while determining initial route or during auth validation
+  if (isLoading || authLoading || !initialValidationDone) {
     return <LoadingScreen />;
   }
 
   // Show appropriate layout based on authentication state
-  if (user?.isAuthenticated) {
+  // Only show authenticated layout if explicitly authenticated
+  if (user?.isAuthenticated === true) {
     return <AuthenticatedLayout />;
   } else {
+    // Show unauthenticated layout for null user or explicitly unauthenticated user
     return <UnauthenticatedLayout />;
   }
 } 

@@ -29,57 +29,57 @@ function AboutContent() {
 
   const features = [
     { 
-      icon: 'cogs', 
-      title: 'Context-Driven', 
-      description: 'Advanced state management using React Context patterns for scalable architecture', 
+      icon: 'heart', 
+      title: 'Supportive Community', 
+      description: 'Connect with fellow parents and caregivers for guidance, support, and shared experiences', 
       color: colors.primary 
     },
     { 
-      icon: 'shield-alt', 
-      title: 'Secure & Private', 
-      description: 'End-to-end encryption, biometric authentication, and comprehensive security', 
+      icon: 'book-open', 
+      title: 'Real Stories', 
+      description: 'Learn from authentic parent experiences and stories from real families', 
       color: colors.success 
     },
     { 
-      icon: 'mobile-alt', 
-      title: 'Cross-Platform', 
-      description: 'Seamless experience across iOS, Android, and web with responsive design', 
+      icon: 'map', 
+      title: 'Practical Playbooks', 
+      description: 'Situation-specific guides to navigate common parenting challenges with confidence', 
       color: colors.info 
     },
     { 
-      icon: 'palette', 
-      title: 'Beautiful Design', 
-      description: 'Modern, accessible UI with dynamic themes and smooth animations', 
+      icon: 'spa', 
+      title: 'Self-Care Tools', 
+      description: 'Mindfulness exercises, breathing techniques, and wellness tools for parent well-being', 
       color: colors.accent 
     },
     { 
-      icon: 'route', 
-      title: 'Smart Navigation', 
-      description: 'File-based routing with drawer and tab navigation patterns', 
+      icon: 'shield-alt', 
+      title: 'Safe Space', 
+      description: 'Secure, judgment-free environment where you can share and seek support', 
       color: colors.warning 
     },
     { 
-      icon: 'code', 
-      title: 'Developer Ready', 
-      description: 'TypeScript, testing, linting, and comprehensive development tools', 
+      icon: 'lightbulb', 
+      title: 'Daily Insights', 
+      description: 'Evidence-based tips and gentle reminders to support your parenting journey', 
       color: colors.error 
     }
   ];
 
-  const technologies = [
-    { name: 'React Native', icon: 'react', color: '#61DAFB' },
-    { name: 'TypeScript', icon: 'code', color: '#3178C6' },
-    { name: 'Expo', icon: 'mobile-alt', color: '#000020' },
-    { name: 'Context API', icon: 'cogs', color: '#61DAFB' },
-    { name: 'Expo Router', icon: 'route', color: '#000020' },
-    { name: 'Jest Testing', icon: 'vial', color: '#C21325' }
+  const values = [
+    { name: 'Empathy', icon: 'heart', color: '#EF4444' },
+    { name: 'Growth', icon: 'seedling', color: '#10B981' },
+    { name: 'Support', icon: 'hands-helping', color: '#6366F1' },
+    { name: 'Authenticity', icon: 'user-check', color: '#F59E0B' },
+    { name: 'Balance', icon: 'yin-yang', color: '#8B5CF6' },
+    { name: 'Connection', icon: 'link', color: '#06B6D4' }
   ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight }]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -87,16 +87,16 @@ function AboutContent() {
         {/* App Info Section */}
         <View style={[styles.appInfoCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}>
           <View style={[styles.appIcon, { backgroundColor: colors.primary }]}>
-            <FontAwesome5 name="layer-group" size={36} color="#fff" />
+            <FontAwesome5 name="heart" size={36} color="#fff" />
           </View>
-          <Text style={[styles.appName, { color: colors.text }]}>React Native Context Template</Text>
+          <Text style={[styles.appName, { color: colors.text }]}>RaisingHuman</Text>
           <Text style={[styles.appTagline, { color: colors.textSecondary }]}>
-            Production-ready template with Context patterns
+            Supporting parents and caregivers on their journey
           </Text>
           <Text style={[styles.appDescription, { color: colors.textSecondary }]}>
-            A comprehensive React Native template featuring advanced Context-based state management, 
-            authentication, theming, and navigation. Built for developers who want to create 
-            scalable, maintainable mobile applications.
+            RaisingHuman is a community and learning app designed for parents and caregivers. 
+            We provide evidence-based guidance, curated content, and supportive connections 
+            to help you raise confident, compassionate, and resilient children.
           </Text>
           <View style={[styles.versionBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <FontAwesome5 name="tag" size={10} color={colors.textSecondary} style={styles.versionIcon} />
@@ -125,77 +125,77 @@ function AboutContent() {
           </View>
         </View>
 
-        {/* Technology Stack */}
+        {/* Our Values */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Built With</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Our Values</Text>
           <View style={styles.techGrid}>
-            {technologies.map((tech, index) => (
+            {values.map((value, index) => (
               <View 
                 key={index}
                 style={[styles.techCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
               >
-                <FontAwesome5 name={tech.icon as any} size={16} color={tech.color} />
-                <Text style={[styles.techName, { color: colors.text }]}>{tech.name}</Text>
+                <FontAwesome5 name={value.icon as any} size={16} color={value.color} />
+                <Text style={[styles.techName, { color: colors.text }]}>{value.name}</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* Company Section */}
+        {/* Our Mission */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>About This Template</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Our Mission</Text>
           <View style={[styles.companyCard, { backgroundColor: colors.accent + '10', borderColor: colors.accent + '30' }]}>
             <View style={[styles.companyIcon, { backgroundColor: colors.accent + '20' }]}>
-              <FontAwesome5 name="users" size={24} color={colors.accent} />
+              <FontAwesome5 name="compass" size={24} color={colors.accent} />
             </View>
             <View style={styles.companyInfo}>
-              <Text style={[styles.companyName, { color: colors.text }]}>React Native Context Template</Text>
+              <Text style={[styles.companyName, { color: colors.text }]}>Empowering Every Parent</Text>
               <Text style={[styles.companyDescription, { color: colors.textSecondary }]}>
-                Created by the React Native community to provide developers with a robust, 
-                production-ready template that showcases best practices for Context-based state management, 
-                authentication, theming, and navigation in modern mobile applications.
+                We believe every parent deserves support, guidance, and connection. RaisingHuman creates a safe, 
+                judgment-free space where caregivers can learn, grow, and find the confidence to navigate 
+                their unique parenting journey with wisdom and compassion.
               </Text>
               <View style={styles.companyMeta}>
                 <View style={styles.metaItem}>
                   <FontAwesome5 name="calendar-alt" size={12} color={colors.textSecondary} />
-                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>Released 2024</Text>
+                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>Launched 2024</Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="globe" size={12} color={colors.textSecondary} />
-                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>Open Source</Text>
+                  <FontAwesome5 name="users" size={12} color={colors.textSecondary} />
+                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>Community First</Text>
                 </View>
                 <View style={styles.metaItem}>
-                  <FontAwesome5 name="heart" size={12} color={colors.textSecondary} />
-                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>Community Driven</Text>
+                  <FontAwesome5 name="shield-alt" size={12} color={colors.textSecondary} />
+                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>Safe & Secure</Text>
                 </View>
               </View>
             </View>
           </View>
         </View>
 
-        {/* App Stats Section */}
+        {/* Community Impact */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Template Usage</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Our Community</Text>
           <View style={styles.statsGrid}>
             <View style={[styles.statCard, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
-              <FontAwesome5 name="download" size={18} color={colors.primary} />
-              <Text style={[styles.statNumber, { color: colors.text }]}>10K+</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Downloads</Text>
+              <FontAwesome5 name="heart" size={18} color={colors.primary} />
+              <Text style={[styles.statNumber, { color: colors.text }]}>5K+</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Parents Helped</Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.warning + '10', borderColor: colors.warning + '30' }]}>
-              <FontAwesome5 name="star" size={18} color={colors.warning} />
-              <Text style={[styles.statNumber, { color: colors.text }]}>4.9</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>GitHub Stars</Text>
+              <FontAwesome5 name="book-open" size={18} color={colors.warning} />
+              <Text style={[styles.statNumber, { color: colors.text }]}>200+</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Stories Shared</Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.info + '10', borderColor: colors.info + '30' }]}>
-              <FontAwesome5 name="code-branch" size={18} color={colors.info} />
-              <Text style={[styles.statNumber, { color: colors.text }]}>500+</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Forks</Text>
+              <FontAwesome5 name="map" size={18} color={colors.info} />
+              <Text style={[styles.statNumber, { color: colors.text }]}>50+</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Playbooks</Text>
             </View>
             <View style={[styles.statCard, { backgroundColor: colors.success + '10', borderColor: colors.success + '30' }]}>
-              <FontAwesome5 name="users" size={18} color={colors.success} />
-              <Text style={[styles.statNumber, { color: colors.text }]}>2K+</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Developers</Text>
+              <FontAwesome5 name="comments" size={18} color={colors.success} />
+              <Text style={[styles.statNumber, { color: colors.text }]}>1K+</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Discussions</Text>
             </View>
           </View>
         </View>
@@ -217,7 +217,7 @@ function AboutContent() {
               <View style={styles.optionContent}>
                 <Text style={[styles.optionText, { color: colors.text }]}>Privacy Policy</Text>
                 <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                  How we collect, use, and protect your data with complete transparency
+                  How we protect your family's privacy and keep your data secure
                 </Text>
               </View>
               <FontAwesome5 name="chevron-right" size={12} color={colors.textSecondary} />
@@ -238,7 +238,7 @@ function AboutContent() {
               <View style={styles.optionContent}>
                 <Text style={[styles.optionText, { color: colors.text }]}>Terms of Service</Text>
                 <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
-                  Terms and conditions for using this template and its features
+                  Terms and conditions for using RaisingHuman app and community features
                 </Text>
               </View>
               <FontAwesome5 name="chevron-right" size={12} color={colors.textSecondary} />
@@ -255,54 +255,54 @@ function AboutContent() {
             </View>
             <Text style={[styles.contactTitle, { color: colors.text }]}>Need Help?</Text>
             <Text style={[styles.contactText, { color: colors.textSecondary }]}>
-              Have questions about the template, need help with implementation, or want to contribute? 
-              Our community is here to help you succeed.
+              Have questions about the app, need support with parenting challenges, or want to connect 
+              with other parents? We're here to help you on your parenting journey.
             </Text>
             <View style={styles.contactActions}>
               <Button
-                title="support@react-native-context-template.dev"
+                title="support@raisinghuman.app"
                 variant="primary"
                 onPress={() => {
                   feedback.info('Opening Email', 'Redirecting to your email client...');
-                  Linking.openURL('mailto:support@react-native-context-template.dev?subject=React Native Context Template Support');
+                  Linking.openURL('mailto:support@raisinghuman.app?subject=RaisingHuman Support');
                 }}
                 style={styles.contactButton}
               />
               <TouchableOpacity 
                 style={[styles.socialButton, { backgroundColor: colors.info + '20' }]}
                 onPress={() => {
-                  feedback.info('Opening Discord', 'Joining our community...');
-                  Linking.openURL('https://discord.gg/react-native-context-template');
+                  feedback.info('Opening Community', 'Joining our parent community...');
+                  Linking.openURL('https://community.raisinghuman.app');
                 }}
               >
-                <FontAwesome5 name="discord" size={16} color={colors.info} />
-                <Text style={[styles.socialText, { color: colors.info }]}>Join Discord</Text>
+                <FontAwesome5 name="users" size={16} color={colors.info} />
+                <Text style={[styles.socialText, { color: colors.info }]}>Join Community</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        {/* Open Source Section */}
+        {/* Evidence-Based Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Open Source</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Evidence-Based Guidance</Text>
           <View style={[styles.openSourceCard, { backgroundColor: colors.accent + '10', borderColor: colors.accent + '30' }]}>
             <View style={[styles.openSourceIcon, { backgroundColor: colors.accent + '20' }]}>
-              <FontAwesome5 name="code-branch" size={20} color={colors.accent} />
+              <FontAwesome5 name="graduation-cap" size={20} color={colors.accent} />
             </View>
-            <Text style={[styles.openSourceTitle, { color: colors.text }]}>Community Driven</Text>
+            <Text style={[styles.openSourceTitle, { color: colors.text }]}>Research-Backed Content</Text>
             <Text style={[styles.openSourceText, { color: colors.textSecondary }]}>
-              This template is open source and maintained by the React Native community. 
-              Check out our GitHub repository to see the code, report issues, or contribute new features.
+              All our playbooks, tips, and guidance are based on current research in child development, 
+              psychology, and parenting. We work with experts to ensure you get reliable, science-backed advice.
             </Text>
             <TouchableOpacity 
               style={[styles.githubButton, { backgroundColor: colors.text + '10', borderColor: colors.text + '30' }]}
               onPress={() => {
-                feedback.info('Opening GitHub', 'Redirecting to our repository...');
-                Linking.openURL('https://github.com/react-native-community/react-native-context-template');
+                feedback.info('Opening Resources', 'Viewing our research sources...');
+                Linking.openURL('https://raisinghuman.app/research');
               }}
             >
-              <FontAwesome5 name="github" size={16} color={colors.text} />
-              <Text style={[styles.githubText, { color: colors.text }]}>View on GitHub</Text>
+              <FontAwesome5 name="external-link-alt" size={16} color={colors.text} />
+              <Text style={[styles.githubText, { color: colors.text }]}>View Research</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -310,29 +310,29 @@ function AboutContent() {
         {/* Copyright */}
         <View style={styles.copyrightSection}>
           <Text style={[styles.copyrightText, { color: colors.textSecondary }]}>
-            © 2024 React Native Context Template. MIT License.
+            © 2024 RaisingHuman. All rights reserved.
           </Text>
           <Text style={[styles.copyrightText, { color: colors.textSecondary }]}>
-            Made with ❤️ using React Native, Expo & Context API
+            Supporting parents and caregivers with love and evidence ❤️
           </Text>
           <View style={styles.socialLinks}>
             <TouchableOpacity 
-              onPress={() => Linking.openURL('https://twitter.com/rncontexttemplate')}
+              onPress={() => Linking.openURL('https://twitter.com/raisinghuman')}
               style={[styles.socialLink, { backgroundColor: colors.surface }]}
             >
               <FontAwesome5 name="twitter" size={14} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity 
-              onPress={() => Linking.openURL('https://github.com/react-native-community/react-native-context-template')}
+              onPress={() => Linking.openURL('https://instagram.com/raisinghuman')}
               style={[styles.socialLink, { backgroundColor: colors.surface }]}
             >
-              <FontAwesome5 name="github" size={14} color={colors.textSecondary} />
+              <FontAwesome5 name="instagram" size={14} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity 
-              onPress={() => Linking.openURL('https://discord.gg/react-native-context-template')}
+              onPress={() => Linking.openURL('https://facebook.com/raisinghumanapp')}
               style={[styles.socialLink, { backgroundColor: colors.surface }]}
             >
-              <FontAwesome5 name="discord" size={14} color={colors.textSecondary} />
+              <FontAwesome5 name="facebook" size={14} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -342,8 +342,21 @@ function AboutContent() {
 }
 
 export default function AboutScreen() {
+  const { colors } = useTheme();
+
+  // Custom back button to navigate to settings
+  const customBackButton = (
+    <TouchableOpacity
+      style={[styles.headerBackButton, { backgroundColor: colors.surface }]}
+      onPress={() => router.push('/settings')}
+    >
+      <FontAwesome5 name="arrow-left" size={18} color={colors.text} />
+    </TouchableOpacity>
+  );
+
+
   return (
-    <PageWithAnimatedHeader title="About" showBackButton={true}>
+    <PageWithAnimatedHeader title="About" headerLeft={customBackButton}>
       <AboutContent />
     </PageWithAnimatedHeader>
   );
@@ -689,5 +702,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
 }); 

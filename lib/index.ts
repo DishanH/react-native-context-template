@@ -5,7 +5,7 @@ export * from './storage';
 export * from './feedback';
 
 // Toast configuration
-export * from './toastConfig'; 
+export * from './toastConfig';
 
 // Error handling utilities
 export * from './utils/error-handler';

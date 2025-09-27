@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../src/shared/components/ui/Button';
-import EmailVerificationCard from '../../components/auth/EmailVerificationCard';
+import EmailVerificationCard from '@/components/auth/EmailVerificationCard';
 import { useAuth, useTheme } from '../../contexts';
 
 const EmailVerificationScreen = () => {

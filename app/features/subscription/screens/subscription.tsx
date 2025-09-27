@@ -28,15 +28,13 @@ const SubscriptionContent = () => {
     cancelSubscription,
     renewSubscription,
     toggleAutoRenew,
-    isTrialActive,
-    getDaysUntilExpiry,
   } = useSubscription();
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const handleUpgrade = async (planId: SubscriptionPlan) => {
     setActionLoading(planId);
-    
+
     try {
       const success = await upgradeToPlan(planId);
       if (success) {
@@ -53,7 +51,7 @@ const SubscriptionContent = () => {
 
   const handleStartTrial = async (planId: SubscriptionPlan) => {
     setActionLoading(`trial-${planId}`);
-    
+
     try {
       const success = await startFreeTrial(planId);
       if (success) {
@@ -94,7 +92,7 @@ const SubscriptionContent = () => {
 
   const handleRenew = async () => {
     setActionLoading('renew');
-    
+
     try {
       const success = await renewSubscription();
       if (success) {
@@ -111,7 +109,7 @@ const SubscriptionContent = () => {
 
   const handleToggleAutoRenew = async () => {
     setActionLoading('auto-renew');
-    
+
     try {
       const success = await toggleAutoRenew();
       if (success) {
@@ -162,10 +160,10 @@ const SubscriptionContent = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>        
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>          
+          <Text style={[styles.loadingText, { color: colors.text }]}>
             Loading subscription...
           </Text>
         </View>
@@ -174,10 +172,10 @@ const SubscriptionContent = () => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>      
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight }]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -185,15 +183,15 @@ const SubscriptionContent = () => {
         {/* Subscription Plans */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose Your Plan</Text>
-          
+
           {availablePlans.map((plan) => {
             const isCurrentPlan = subscription?.plan === plan.id;
-            
+
             return (
-              <View key={plan.id} style={[                
-                styles.card, 
-                { 
-                  backgroundColor: colors.surface, 
+              <View key={plan.id} style={[
+                styles.card,
+                {
+                  backgroundColor: colors.surface,
                   borderColor: isCurrentPlan ? colors.success : plan.isPopular ? colors.primary : colors.border,
                   borderWidth: isCurrentPlan || plan.isPopular ? 2 : 1,
                 }
@@ -202,7 +200,7 @@ const SubscriptionContent = () => {
                 <View style={styles.planHeader}>
                   <View style={styles.planTitleSection}>
                     <View style={styles.planTitleRow}>
-                      <Text style={[styles.planName, { color: colors.text }]}>                        
+                      <Text style={[styles.planName, { color: colors.text }]}>
                         {plan.name}
                       </Text>
                       <View style={styles.badgeContainer}>
@@ -218,7 +216,7 @@ const SubscriptionContent = () => {
                         )}
                       </View>
                     </View>
-                    <Text style={[styles.planPrice, { color: colors.text }]}>                      
+                    <Text style={[styles.planPrice, { color: colors.text }]}>
                       {plan.price === 0 ? 'Free' : `$${plan.price}`}
                       {plan.price > 0 && <Text style={[styles.planInterval, { color: colors.textSecondary }]}>/{plan.interval}</Text>}
                     </Text>
@@ -268,17 +266,17 @@ const SubscriptionContent = () => {
         {subscription && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Manage Subscription</Text>
-            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>              
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               {/* Current Plan Status */}
               <View style={[styles.managementOption, { paddingHorizontal: 12 }]}>
-                <View style={[styles.iconContainer, { backgroundColor: getStatusColor(subscription.status) + '20' }]}>                  
+                <View style={[styles.iconContainer, { backgroundColor: getStatusColor(subscription.status) + '20' }]}>
                   <FontAwesome5 name={getStatusIcon(subscription.status)} size={14} color={getStatusColor(subscription.status)} />
                 </View>
                 <View style={styles.optionContent}>
-                  <Text style={[styles.optionText, { color: colors.text }]}>                    
+                  <Text style={[styles.optionText, { color: colors.text }]}>
                     Current Plan: {availablePlans.find(p => p.id === subscription.plan)?.name || subscription.plan}
                   </Text>
-                  <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>                    
+                  <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
                     Status: {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
                     {subscription.end_date && ` • Expires ${formatDate(subscription.end_date)}`}
                   </Text>
@@ -289,7 +287,7 @@ const SubscriptionContent = () => {
               {subscription.plan !== 'free' && (
                 <>
                   <View style={[styles.divider, { backgroundColor: colors.border, marginLeft: 50, marginRight: 16 }]} />
-                  
+
                   {subscription.status === 'active' && (
                     <>
                       <TouchableOpacity
@@ -300,14 +298,14 @@ const SubscriptionContent = () => {
                         }}
                         disabled={actionLoading === 'auto-renew'}
                       >
-                        <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>                          
+                        <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
                           <FontAwesome5 name="sync" size={14} color={colors.primary} />
                         </View>
                         <View style={styles.optionContent}>
-                          <Text style={[styles.optionText, { color: colors.text }]}>                            
+                          <Text style={[styles.optionText, { color: colors.text }]}>
                             {subscription.auto_renew ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
                           </Text>
-                          <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>                            
+                          <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
                             {subscription.auto_renew ? 'Turn off automatic billing' : 'Automatically renew your subscription'}
                           </Text>
                         </View>
@@ -324,7 +322,7 @@ const SubscriptionContent = () => {
                           disabled={actionLoading === 'cancel'}
                           loading={actionLoading === 'cancel'}
                         />
-                        <Text style={[styles.managementHint, { color: colors.textSecondary }]}>                          
+                        <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
                           You&apos;ll keep access until your current period ends
                         </Text>
                       </View>
@@ -340,7 +338,7 @@ const SubscriptionContent = () => {
                         disabled={actionLoading === 'renew'}
                         loading={actionLoading === 'renew'}
                       />
-                      <Text style={[styles.managementHint, { color: colors.textSecondary }]}>                        
+                      <Text style={[styles.managementHint, { color: colors.textSecondary }]}>
                         Reactivate your subscription
                       </Text>
                     </View>
@@ -352,9 +350,9 @@ const SubscriptionContent = () => {
               {subscription.plan === 'free' && (
                 <>
                   <View style={[styles.divider, { backgroundColor: colors.border, marginLeft: 50, marginRight: 16 }]} />
-                  
+
                   <View style={[styles.managementButtonContainer, { paddingHorizontal: 12 }]}>
-                    <Text style={[styles.managementHint, { color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }]}>                      
+                    <Text style={[styles.managementHint, { color: colors.textSecondary, textAlign: 'center', marginBottom: 12 }]}>
                       Upgrade to unlock premium features and remove limitations
                     </Text>
                     <Button
@@ -626,4 +624,3 @@ const styles = StyleSheet.create({
   },
 });
 
- 

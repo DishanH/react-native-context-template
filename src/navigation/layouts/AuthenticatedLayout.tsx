@@ -27,41 +27,12 @@ export function AuthenticatedLayout() {
         name="index"
         options={{
           drawerLabel: "Home",
-        }}
-      />
-      <Drawer.Screen
-        name="tabs"
-        options={{
-          drawerLabel: "Dashboard",
-        }}
-      />
-      <Drawer.Screen
-        name="groups"
-        options={{
-          drawerLabel: "Groups",
           drawerIcon: ({ color }) => (
-            <FontAwesome5 name="users" size={20} color={color} />
+            <FontAwesome5 name="home" size={20} color={color} />
           ),
         }}
       />
-      <Drawer.Screen
-        name="activity"
-        options={{
-          drawerLabel: "Activity",
-          drawerIcon: ({ color }) => (
-            <FontAwesome5 name="history" size={20} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="subscription"
-        options={{
-          drawerLabel: "Subscription",
-          drawerIcon: ({ color }) => (
-            <FontAwesome5 name="crown" size={20} color={color} />
-          ),
-        }}
-      />
+
       <Drawer.Screen
         name="settings"
         options={{

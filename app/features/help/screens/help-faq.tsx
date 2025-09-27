@@ -1,4 +1,5 @@
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Platform,
@@ -10,6 +11,7 @@ import {
 } from 'react-native';
 import PageWithAnimatedHeader from '../../../../src/shared/components/layout/PageWithAnimatedHeader';
 import { useTheme, useHeader } from '../../../../contexts';
+import { feedback } from '../../../../lib/feedback';
 
 interface FAQItem {
   id: string;
@@ -106,7 +108,7 @@ function HelpFAQContent() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight }]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -196,8 +198,20 @@ function HelpFAQContent() {
 }
 
 export default function HelpFAQScreen() {
+  const { colors } = useTheme();
+
+  // Custom back button
+  const customBackButton = (
+    <TouchableOpacity
+      style={[styles.headerBackButton, { backgroundColor: colors.surface }]}
+      onPress={() => router.push('/settings')}
+    >
+      <FontAwesome5 name="arrow-left" size={18} color={colors.text} />
+    </TouchableOpacity>
+  );
+
   return (
-    <PageWithAnimatedHeader title="Help & FAQ" showBackButton={true}>
+    <PageWithAnimatedHeader title="Help & FAQ" headerLeft={customBackButton}>
       <HelpFAQContent />
     </PageWithAnimatedHeader>
   );
@@ -306,5 +320,12 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     lineHeight: 18,
   },
-
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
 }); 

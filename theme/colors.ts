@@ -6,7 +6,7 @@
  */
 
 import type { ThemeConfig } from './types';
-import { DARK_PALETTE, LIGHT_PALETTE, STATUS_COLORS, BRAND_COLORS } from './palettes';
+import { DARK_PALETTE, LIGHT_PALETTE, STATUS_COLORS, BRAND_COLORS, BUTTON_COLORS } from './palettes';
 
 /**
  * Complete theme configuration
@@ -23,17 +23,17 @@ const colors: ThemeConfig = {
     surface: LIGHT_PALETTE.lightAlt,         // White for cards, modals
     surfaceVariant: LIGHT_PALETTE.light,     // Light gray for emphasis areas
     headerBackground: LIGHT_PALETTE.lightAlt, // White navigation header
-    
+
     // Text colors - for readability on light backgrounds
     text: LIGHT_PALETTE.darkest,             // Dark text for high contrast
     textSecondary: LIGHT_PALETTE.darker,     // Medium dark for subtitles
-    
+
     // UI element colors - using brand colors and palette
     primary: BRAND_COLORS.primary,           // Main brand color
     primaryDark: BRAND_COLORS.primaryDark,   // Darker brand variant
     secondary: BRAND_COLORS.secondary,       // Secondary brand color
     accent: BRAND_COLORS.accent,             // Accent highlights
-    
+
     // Status colors - optimized for light theme
     success: STATUS_COLORS.success.light,   // Green for positive actions
     warning: STATUS_COLORS.warning.light,   // Orange for warnings
@@ -46,20 +46,20 @@ const colors: ThemeConfig = {
     icon: LIGHT_PALETTE.darker,             // Dark icons for visibility
     statusActive: BRAND_COLORS.primary,     // Active state in brand color
     statusInactive: LIGHT_PALETTE.medium,   // Inactive state in gray
-    
-    // Button variant colors - semantic button styles for light theme
-    buttonPrimary: BRAND_COLORS.primary,            // Brand primary button
-    buttonPrimaryText: LIGHT_PALETTE.lightAlt,      // White text on primary
-    buttonSecondary: LIGHT_PALETTE.medium,          // Gray secondary button
-    buttonSecondaryText: LIGHT_PALETTE.darkest,     // Dark text on secondary
-    buttonOutline: 'transparent',                   // Transparent outline button
-    buttonOutlineText: BRAND_COLORS.primary,        // Brand color outline text
-    buttonDestructive: STATUS_COLORS.error.light,   // Red destructive button
-    buttonDestructiveText: LIGHT_PALETTE.lightAlt,  // White text on destructive
-    buttonGhost: 'transparent',                     // Transparent ghost button
-    buttonGhostText: LIGHT_PALETTE.darker,          // Dark gray ghost text
-    buttonLink: BRAND_COLORS.primary,               // Brand color link
-    
+
+    // Button variant colors - using consistent button palette
+    buttonPrimary: BUTTON_COLORS.primaryBlue,           // Rich blue primary button
+    buttonPrimaryText: BUTTON_COLORS.primaryText,       // White text on primary
+    buttonSecondary: BUTTON_COLORS.secondaryLight,      // Light elevated secondary button
+    buttonSecondaryText: BUTTON_COLORS.secondaryTextLight, // Dark slate text on secondary
+    buttonOutline: 'transparent',                       // Transparent outline button
+    buttonOutlineText: BUTTON_COLORS.outlineLight,      // Primary blue outline text
+    buttonDestructive: BUTTON_COLORS.destructive,       // Red destructive button
+    buttonDestructiveText: BUTTON_COLORS.destructiveText, // White text on destructive
+    buttonGhost: 'transparent',                         // Transparent ghost button
+    buttonGhostText: BUTTON_COLORS.ghostTextLight,      // Subtle slate ghost text
+    buttonLink: BUTTON_COLORS.outlineLight,             // Primary blue link
+
     // Navigation drawer colors - cohesive with main theme
     drawerBackground: LIGHT_PALETTE.lightAlt,        // White drawer background
     drawerItemBackground: LIGHT_PALETTE.lightAlt,    // White item backgrounds
@@ -77,17 +77,17 @@ const colors: ThemeConfig = {
     surface: DARK_PALETTE.darker,            // Dark gray for cards, modals
     surfaceVariant: DARK_PALETTE.medium,     // Medium gray for emphasis areas
     headerBackground: DARK_PALETTE.darkest,  // Dark navigation header
-    
+
     // Text colors - for readability on dark backgrounds
     text: DARK_PALETTE.light,                // Light text for high contrast
     textSecondary: DARK_PALETTE.lightAlt,    // Alternative light for subtitles
-    
+
     // UI element colors - adapted for dark theme
-    primary: DARK_PALETTE.light,             // Light primary for visibility
-    primaryDark: DARK_PALETTE.lightAlt,      // Alternative light variant
-    secondary: DARK_PALETTE.medium,          // Medium gray secondary
-    accent: DARK_PALETTE.medium,             // Medium gray accent
-    
+    primary: BRAND_COLORS.primary,           // Main brand color (same as light theme)
+    primaryDark: BRAND_COLORS.primaryDark,   // Darker brand variant
+    secondary: BRAND_COLORS.secondary,       // Secondary brand color
+    accent: BRAND_COLORS.accent,             // Accent highlights
+
     // Status colors - optimized for dark theme
     success: STATUS_COLORS.success.dark,    // Lighter green for dark backgrounds
     warning: STATUS_COLORS.warning.dark,    // Lighter orange for warnings
@@ -100,20 +100,20 @@ const colors: ThemeConfig = {
     icon: DARK_PALETTE.lightAlt,            // Light icons for visibility
     statusActive: DARK_PALETTE.light,       // Light active state
     statusInactive: DARK_PALETTE.medium,    // Medium gray inactive state
-    
-    // Button variant colors - semantic button styles for dark theme
-    buttonPrimary: DARK_PALETTE.light,              // Light primary button
-    buttonPrimaryText: DARK_PALETTE.darkest,        // Dark text on primary
-    buttonSecondary: DARK_PALETTE.medium,           // Medium gray secondary button
-    buttonSecondaryText: DARK_PALETTE.light,        // Light text on secondary
-    buttonOutline: 'transparent',                   // Transparent outline button
-    buttonOutlineText: DARK_PALETTE.light,          // Light outline text
-    buttonDestructive: STATUS_COLORS.error.dark,    // Red destructive button
-    buttonDestructiveText: DARK_PALETTE.darkest,    // Dark text on destructive
-    buttonGhost: 'transparent',                     // Transparent ghost button
-    buttonGhostText: DARK_PALETTE.lightAlt,         // Light gray ghost text
-    buttonLink: DARK_PALETTE.light,                 // Light link color
-    
+
+    // Button variant colors - using consistent button palette
+    buttonPrimary: BUTTON_COLORS.primaryBlueDark,       // Vibrant blue primary button
+    buttonPrimaryText: BUTTON_COLORS.primaryText,       // White text on primary
+    buttonSecondary: BUTTON_COLORS.secondaryDark,       // Elevated secondary button
+    buttonSecondaryText: BUTTON_COLORS.secondaryTextDark, // Light text on secondary
+    buttonOutline: 'transparent',                       // Transparent outline button
+    buttonOutlineText: BUTTON_COLORS.outlineDark,       // Primary blue outline text
+    buttonDestructive: BUTTON_COLORS.destructiveDark,   // Softer red destructive button
+    buttonDestructiveText: BUTTON_COLORS.destructiveText, // White text on destructive
+    buttonGhost: 'transparent',                         // Transparent ghost button
+    buttonGhostText: BUTTON_COLORS.ghostTextDark,       // Subtle gray ghost text
+    buttonLink: BUTTON_COLORS.outlineDark,              // Primary blue link
+
     // Navigation drawer colors - cohesive with dark theme
     drawerBackground: DARK_PALETTE.darker,           // Dark gray drawer background
     drawerItemBackground: DARK_PALETTE.darker,       // Dark gray item backgrounds

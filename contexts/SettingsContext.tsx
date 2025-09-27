@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
 import { database } from '../lib/database';
 import { useAuth } from './AuthContext';
-import type { UserPreferencesData } from '../types/database';
+import type { UserPreferencesData } from '../lib/database/types/database';
 
 // Use the database type for user preferences
 type UserPreferences = UserPreferencesData;

@@ -4,7 +4,7 @@ import { storage } from '../lib/storage';
 import { database } from '../lib/database';
 import { useAuth as useSupabaseAuth } from '../hooks/useAuth';
 import { GoogleAuthService, AppleAuthService } from '../lib/auth';
-import type { AppUser, Profile } from '../types/database';
+import type { AppUser, Profile } from '../lib/database/types/database';
 
 /**
  * User type definition
@@ -56,6 +56,9 @@ type AuthContextType = {
   
   // Email verification methods
   resendVerificationEmail: (email: string) => Promise<boolean>;
+  
+  // Password reset methods
+  resetPassword: (email: string) => Promise<boolean>;
   
   // Profile methods
   updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
@@ -145,9 +148,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Enhanced user state with app-specific data
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [initialAuthCheck, setInitialAuthCheck] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [authError, setAuthError] = useState<AuthError | null>(null);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
+
+  /**
+   * Initial auth check from storage to prevent flash
+   */
+  useEffect(() => {
+    const checkInitialAuth = async () => {
+      try {
+        // Check auth status first (faster than getting user data)
+        const isAuthenticated = await storage.getAuthStatus();
+        
+        if (isAuthenticated) {
+          // Only get user data if authenticated
+          const storedUser = await storage.get(USER_STORAGE_KEY, true);
+          if (storedUser) {
+            // Set user from storage immediately to prevent flash
+            setUser(storedUser);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking initial auth:', error);
+      } finally {
+        setInitialAuthCheck(true);
+      }
+    };
+
+    checkInitialAuth();
+  }, []);
 
   /**
    * Convert Supabase user to app user format and handle storage
@@ -157,7 +188,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updateUserState = async () => {
       try {
         if (session?.user) {
-          console.log('Updating user state for authenticated user:', session.user.id);
+          // Reduce logging verbosity - only log significant changes
+          const isNewUser = !user || user.id !== session.user.id;
+          if (isNewUser) {
+            console.log('Updating user state for authenticated user:', session.user.id);
+          }
           
           // Fetch the user's profile from the database with error handling
           let userProfile = null;
@@ -202,6 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // They can be accessed via the session and profile state when needed
           };
           
+          // Set user state with full data (including large objects for in-memory usage)
           setUser({...userData, supabaseUser: session.user, profile: userProfile || undefined});
           setProfile(userProfile);
           
@@ -215,15 +251,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               currentStoredData.name !== userData.name;
             
             if (hasDataChanged) {
-              // Optimize data for storage by removing undefined values
-              const optimizedUserData = storage.optimizeForStorage(userData);
-              // Note: If optimized data is still > 2048 bytes, storage.set will automatically
-              // use only essential fields (id, email, name, isAuthenticated) for persistence
-              await storage.set(USER_STORAGE_KEY, optimizedUserData);
+              // Create storage-optimized version excluding large objects
+              const storageUserData = storage.optimizeForStorage(userData, ['supabaseUser', 'profile']);
+              await storage.set(USER_STORAGE_KEY, storageUserData);
               await storage.setAuthStatus(true);
-              console.log('User data saved to storage successfully');
-            } else {
-              console.log('User data unchanged, skipping storage save');
+              // Only log storage operations for new users to reduce noise
+              if (isNewUser) {
+                console.log('User data saved to storage successfully');
+              }
             }
           } catch (storageError) {
             console.error('Failed to save user data to storage:', storageError);
@@ -252,15 +287,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Don't set user to null on errors - could cause auth loops
         // Let the current state remain until we have a definitive auth change
       } finally {
-        setIsLoading(false);
+        // Only set loading to false if we haven't already done initial check
+        if (initialAuthCheck) {
+          setIsLoading(false);
+        }
       }
     };
 
-    // Only update when auth loading is complete
-    if (!authLoading) {
+    // Only update when auth loading is complete and initial check is done
+    if (!authLoading && initialAuthCheck) {
       updateUserState();
     }
-  }, [session, authLoading]);
+  }, [session, authLoading, initialAuthCheck]);
+
+  /**
+   * Update loading state when initial auth check completes
+   */
+  useEffect(() => {
+    if (initialAuthCheck && !authLoading) {
+      setIsLoading(false);
+    }
+  }, [initialAuthCheck, authLoading]);
 
   // Note: Storage is now handled only in the main user update effect above
   // This eliminates double storage writes and race conditions
@@ -438,6 +485,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
+   * Send password reset email for a given email address
+   * 
+   * @param email - User's email address
+   * @returns Promise<boolean> - true if email was sent successfully
+   */
+  const resetPassword = async (email: string): Promise<boolean> => {
+    try {
+      return await database.resetPassword(email);
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      return false;
+    }
+  };
+
+  /**
    * Update user profile
    */
   const updateProfile = async (updates: Partial<Profile>): Promise<boolean> => {
@@ -461,7 +523,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         setUser(updatedUser);
-        await storage.set(USER_STORAGE_KEY, updatedUser);
+        // Store optimized version excluding large objects
+        const storageUserData = storage.optimizeForStorage(updatedUser, ['supabaseUser', 'profile']);
+        await storage.set(USER_STORAGE_KEY, storageUserData);
         
         return true;
       }
@@ -490,6 +554,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     socialSignIn,
     resendVerificationEmail,
+    resetPassword,
     updateProfile
   };
 

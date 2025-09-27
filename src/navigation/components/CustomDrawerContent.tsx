@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Text, Image, StyleSheet, Platform } from 'react-native';
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useTheme, useAuth } from '../../../contexts';
+import { useTheme, useAuth, useNavigationState } from '../../../contexts';
 import { feedback } from '../../../lib/feedback';
 
 export function CustomDrawerContent(props: any) {
   const { colors } = useTheme();
   const { user, signOut } = useAuth();
+  const { setFromDashboard, setShowBackButton } = useNavigationState();
 
   // Determine current route name to highlight active drawer item
   const currentRouteName = props.state.routes[props.state.index]?.name || "";
@@ -25,6 +26,21 @@ export function CustomDrawerContent(props: any) {
       console.error('Sign out error:', error);
     }
   };
+
+  const menuItems = [
+    {
+      name: "tabs",
+      displayName: "Dashboard",
+      icon: "tachometer-alt",
+      routes: ["tabs", "index"]
+    },
+    {
+      name: "settings",
+      displayName: "Settings",
+      icon: "cog",
+      routes: ["settings"]
+    }
+  ];
 
   return (
     <View
@@ -47,7 +63,7 @@ export function CustomDrawerContent(props: any) {
         <View style={styles.userSection}>
           <View style={[styles.avatarContainer, { borderColor: colors.primary + '50' }]}>
             <Image
-              source={{ uri: user?.avatar_url || "https://randomuser.me/api/portraits/men/32.jpg" }}
+              source={{ uri: user?.avatar_url || "https://api.dicebear.com/8.x/avataaars/png?seed=DefaultParent&accessories=prescription01&clothing=shirtCrewNeck&clothingColor=blue01&eyeType=default&eyebrowType=default&facialHairType=blank&hairColor=brown&hatColor=black&mouthType=smile&skinColor=light&topType=shortHairShortFlat" }}
               style={styles.avatar}
               resizeMode="cover"
             />
@@ -63,175 +79,85 @@ export function CustomDrawerContent(props: any) {
 
       {/* Menu Items */}
       <ScrollView style={styles.drawerContent} showsVerticalScrollIndicator={false}>
+        {menuItems.map((item) => {
+          const isActive = item.routes.includes(currentRouteName);
+          
+          return (
+            <TouchableOpacity
+              key={item.name}
+              style={[
+                styles.drawerItem,
+                {
+                  backgroundColor: isActive
+                    ? colors.drawerActiveItemBackground
+                    : "transparent",
+                },
+              ]}
+              onPress={() => {
+                feedback.navigate();
+                // Reset navigation state when navigating via drawer (not from dashboard)
+                setFromDashboard(false);
+                setShowBackButton(false);
+                props.navigation.navigate(item.name);
+              }}
+            >
+              <View style={styles.drawerIconContainer}>
+                <FontAwesome5
+                  name={item.icon}
+                  size={18}
+                  color={isActive ? colors.primary : colors.icon}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.drawerItemText,
+                  {
+                    color: isActive ? colors.primary : colors.text,
+                    fontWeight: isActive ? "600" : "500",
+                  },
+                ]}
+              >
+                {item.displayName}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Divider */}
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+        {/* Secondary Menu Items */}
         <TouchableOpacity
-          style={[
-            styles.drawerItem,
-            {
-              backgroundColor:
-                currentRouteName === "tabs" || currentRouteName === "index"
-                  ? colors.drawerActiveItemBackground
-                  : "transparent",
-            },
-          ]}
+          style={styles.drawerItem}
           onPress={() => {
             feedback.navigate();
-            props.navigation.navigate("tabs");
+            setFromDashboard(false);
+            setShowBackButton(false);
+            props.navigation.navigate("help-faq");
           }}
         >
           <View style={styles.drawerIconContainer}>
-            <FontAwesome5
-              name="tachometer-alt"
-              size={18}
-              color={currentRouteName === "tabs" || currentRouteName === "index" ? colors.primary : colors.icon}
-            />
+            <FontAwesome5 name="question-circle" size={18} color={colors.icon} />
           </View>
-          <Text
-            style={[
-              styles.drawerItemText,
-              {
-                color: currentRouteName === "tabs" || currentRouteName === "index" ? colors.primary : colors.text,
-                fontWeight: currentRouteName === "tabs" || currentRouteName === "index" ? "600" : "500",
-              },
-            ]}
-          >
-            Dashboard
+          <Text style={[styles.drawerItemText, { color: colors.text }]}>
+            Help & FAQ
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.drawerItem,
-            {
-              backgroundColor:
-                currentRouteName === "groups"
-                  ? colors.drawerActiveItemBackground
-                  : "transparent",
-            },
-          ]}
+          style={styles.drawerItem}
           onPress={() => {
             feedback.navigate();
-            props.navigation.navigate("groups");
+            setFromDashboard(false);
+            setShowBackButton(false);
+            props.navigation.navigate("about");
           }}
         >
           <View style={styles.drawerIconContainer}>
-            <FontAwesome5
-              name="users"
-              size={18}
-              color={currentRouteName === "groups" ? colors.primary : colors.icon}
-            />
+            <FontAwesome5 name="info-circle" size={18} color={colors.icon} />
           </View>
-          <Text
-            style={[
-              styles.drawerItemText,
-              {
-                color: currentRouteName === "groups" ? colors.primary : colors.text,
-                fontWeight: currentRouteName === "groups" ? "600" : "500",
-              },
-            ]}
-          >
-            Groups
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.drawerItem,
-            {
-              backgroundColor:
-                currentRouteName === "activity"
-                  ? colors.drawerActiveItemBackground
-                  : "transparent",
-            },
-          ]}
-          onPress={() => {
-            feedback.navigate();
-            props.navigation.navigate("activity");
-          }}
-        >
-          <View style={styles.drawerIconContainer}>
-            <FontAwesome5
-              name="history"
-              size={18}
-              color={currentRouteName === "activity" ? colors.primary : colors.icon}
-            />
-          </View>
-          <Text
-            style={[
-              styles.drawerItemText,
-              {
-                color: currentRouteName === "activity" ? colors.primary : colors.text,
-                fontWeight: currentRouteName === "activity" ? "600" : "500",
-              },
-            ]}
-          >
-            Activity
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.drawerItem,
-            {
-              backgroundColor:
-                currentRouteName === "subscription"
-                  ? colors.drawerActiveItemBackground
-                  : "transparent",
-            },
-          ]}
-          onPress={() => props.navigation.navigate("subscription")}
-        >
-          <View style={styles.drawerIconContainer}>
-            <FontAwesome5
-              name="crown"
-              size={18}
-              color={currentRouteName === "subscription" ? colors.primary : colors.icon}
-            />
-          </View>
-          <Text
-            style={[
-              styles.drawerItemText,
-              {
-                color: currentRouteName === "subscription" ? colors.primary : colors.text,
-                fontWeight: currentRouteName === "subscription" ? "600" : "500",
-              },
-            ]}
-          >
-            Subscription
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.drawerItem,
-            {
-              backgroundColor:
-                currentRouteName === "settings"
-                  ? colors.drawerActiveItemBackground
-                  : "transparent",
-            },
-          ]}
-          onPress={() => {
-            feedback.navigate();
-            props.navigation.navigate("settings");
-          }}
-        >
-          <View style={styles.drawerIconContainer}>
-            <FontAwesome5
-              name="cog"
-              size={18}
-              color={currentRouteName === "settings" ? colors.primary : colors.icon}
-            />
-          </View>
-          <Text
-            style={[
-              styles.drawerItemText,
-              {
-                color: currentRouteName === "settings" ? colors.primary : colors.text,
-                fontWeight: currentRouteName === "settings" ? "600" : "500",
-              },
-            ]}
-          >
-            Settings
+          <Text style={[styles.drawerItemText, { color: colors.text }]}>
+            About
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -259,6 +185,11 @@ export function CustomDrawerContent(props: any) {
             Sign Out
           </Text>
         </TouchableOpacity>
+        
+        {/* App Version */}
+        <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+          Raising Humans v1.0.0
+        </Text>
       </View>
     </View>
   );
@@ -353,5 +284,10 @@ const styles = StyleSheet.create({
   bottomSection: {
     paddingHorizontal: 16,
     paddingBottom: 20,
+  },
+  versionText: {
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
   },
 }); 

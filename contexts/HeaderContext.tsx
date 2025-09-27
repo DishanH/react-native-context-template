@@ -6,6 +6,7 @@ import useScrollHider from '../src/shared/components/ui/ScrollHider';
 interface HeaderContextType {
   headerHeight: number;
   safeAreaTop: number;
+  headerContentHeight: number;
   handleScroll: (event: any) => void;
 }
 
@@ -21,18 +22,26 @@ export const useHeader = () => {
 
 interface HeaderProviderProps {
   children: React.ReactNode;
+  customHeaderContentHeight?: number;
+  bottomPadding?: number;
 }
 
-export const HeaderProvider: React.FC<HeaderProviderProps> = ({ children }) => {
+export const HeaderProvider: React.FC<HeaderProviderProps> = ({ 
+  children, 
+  customHeaderContentHeight,
+  bottomPadding = 0
+}) => {
   const insets = useSafeAreaInsets();
   const { handleScroll } = useScrollHider();
   
-  // Calculate header height for padding
-  const headerHeight = Platform.OS === "ios" ? 44 + insets.top : 56 + insets.top;
+  // Calculate proper header height: safe area + header content height + bottom padding
+  const headerContentHeight = customHeaderContentHeight || (Platform.OS === "ios" ? 44 : 56);
+  const headerHeight = insets.top + headerContentHeight + bottomPadding;
 
   const contextValue = {
     headerHeight,
     safeAreaTop: insets.top,
+    headerContentHeight,
     handleScroll,
   };
 

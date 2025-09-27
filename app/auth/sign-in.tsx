@@ -15,8 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import Button from '../../src/shared/components/ui/Button';
-import { SocialAuthButtons } from '../../components/auth/SocialAuthButtons';
-import AuthErrorCard from '../../components/auth/AuthErrorCard';
+import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons';
+import AuthErrorCard from '@/components/auth/AuthErrorCard';
 import { useAuth, useTheme } from '../../contexts';
 
 const SignInScreen = () => {
@@ -90,6 +90,10 @@ const SignInScreen = () => {
     router.push('/auth/sign-up' as any);
   };
 
+  const navigateToForgotPassword = () => {
+    router.push('/auth/forgot-password' as any);
+  };
+
   const handleResendVerification = async () => {
     if (email) {
       const success = await resendVerificationEmail(email);
@@ -143,13 +147,13 @@ const SignInScreen = () => {
             {/* Header Section */}
             <View style={styles.header}>
               <View style={[styles.logoContainer, { backgroundColor: colors.accent + '20' }]}>
-                <Ionicons name="rocket" size={32} color={colors.primary} />
+                <Ionicons name="heart" size={32} color={colors.primary} />
               </View>
               <Text style={[styles.title, { color: colors.text }]}>
                 Welcome Back
               </Text>
               <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                Sign in to continue your journey
+                Continue your parenting journey with our supportive community
               </Text>
             </View>
 
@@ -214,7 +218,7 @@ const SignInScreen = () => {
               />
 
               {/* Forgot Password */}
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity style={styles.forgotPassword} onPress={navigateToForgotPassword}>
                 <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
                   Forgot Password?
                 </Text>

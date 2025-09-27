@@ -38,15 +38,15 @@ function SettingsContent() {
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+      contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight }]}
       onScroll={handleScroll}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     >
       {/* Profile Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile</Text>
-        
+        {/* <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile</Text>
+         */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TouchableOpacity 
             style={styles.optionItem}
@@ -65,6 +65,24 @@ function SettingsContent() {
               </Text>
             </View>
           </TouchableOpacity>
+          
+          {/* <TouchableOpacity 
+            style={styles.optionItem}
+            onPress={() => {
+              feedback.navigate();
+              router.push('/community-profile' as any);
+            }}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: '#10B981' + '20' }]}>
+              <FontAwesome5 name="users" size={14} color="#10B981" />
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={[styles.optionText, { color: colors.text }]}>Community Profile</Text>
+              <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                Manage your community settings and privacy
+              </Text>
+            </View>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -186,7 +204,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    padding: 20,
+    padding: 14,
     paddingBottom: 40,
   },
   section: {

@@ -2,12 +2,12 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
 import { database } from '../lib/database';
 import { useAuth } from './AuthContext';
-import type { Subscription, SubscriptionPlan, SubscriptionStatus } from '../types/database';
+import type { Subscription, SubscriptionPlan, SubscriptionStatus } from '../lib/database/types/database';
 
 /**
  * Subscription Plan Types - using database types
  */
-export { SubscriptionPlan, SubscriptionStatus } from '../types/database';
+export { SubscriptionPlan, SubscriptionStatus } from '../lib/database/types/database';
 
 /**
  * Subscription Plan Details

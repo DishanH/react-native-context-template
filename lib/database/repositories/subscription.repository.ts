@@ -1,6 +1,6 @@
 import { BaseRepository, DatabaseResponse } from '../core/base-repository';
 import { storage } from '../../storage';
-import type { Subscription, SubscriptionInsert, SubscriptionUpdate } from '../../../types/database';
+import type { Subscription, SubscriptionInsert, SubscriptionUpdate } from '../types/database';
 
 export class SubscriptionRepository extends BaseRepository {
   constructor() {

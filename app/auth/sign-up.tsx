@@ -15,8 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import Button from '../../src/shared/components/ui/Button';
-import { SocialAuthButtons } from '../../components/auth/SocialAuthButtons';
-import AuthErrorCard from '../../components/auth/AuthErrorCard';
+import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons';
+import AuthErrorCard from '@/components/auth/AuthErrorCard';
 import { useAuth, useTheme } from '../../contexts';
 import { AuthError } from '../../contexts/AuthContext';
 
@@ -145,13 +145,13 @@ const SignUpScreen = () => {
           {/* Header Section */}
           <View style={styles.header}>
             <View style={[styles.logoContainer, { backgroundColor: colors.accent + '20' }]}>
-              <Ionicons name="person-add" size={32} color={colors.primary} />
+              <Ionicons name="heart" size={32} color={colors.primary} />
             </View>
             <Text style={[styles.title, { color: colors.text }]}>
-              Create Account
+              Join RaisingHuman
             </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Sign up to start your journey
+              Start your parenting journey with evidence-based guidance and a supportive community
             </Text>
           </View>
 

@@ -69,7 +69,7 @@ function PrivacyPolicyContent() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+        contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight }]}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}

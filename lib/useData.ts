@@ -421,4 +421,229 @@ export function useDashboardData(config: DataConfig = { enableRemoteSync: false,
     preferences,
     subscription,
   };
-} 
+}
+
+/**
+ * Activity progress types
+ */
+interface DailyProgress {
+  date: string;
+  breaths: number;
+  stories: number;
+  tools: number;
+  shares: number;
+  aiChats: number;
+  journalEntries: number;
+  lastUpdated: string;
+}
+
+type ActivityType = keyof Omit<DailyProgress, 'date' | 'lastUpdated'>;
+
+/**
+ * Hook for managing daily activity progress
+ */
+export function useActivityProgress() {
+  const [todaysProgress, setTodaysProgress] = useState<DailyProgress>({
+    date: new Date().toDateString(),
+    breaths: 0,
+    stories: 0,
+    tools: 0,
+    shares: 0,
+    aiChats: 0,
+    journalEntries: 0,
+    lastUpdated: new Date().toISOString()
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Get today's date string for storage key
+  const getTodayKey = useCallback(() => {
+    return `daily_progress_${new Date().toDateString().replace(/\s/g, '_')}`;
+  }, []);
+
+  // Load today's progress from storage
+  const loadTodaysProgress = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const todayKey = getTodayKey();
+      const savedProgress = await storage.get(todayKey, true);
+      
+      if (savedProgress && savedProgress.date === new Date().toDateString()) {
+        setTodaysProgress(savedProgress);
+      } else {
+        // Initialize new day's progress
+        const newProgress: DailyProgress = {
+          date: new Date().toDateString(),
+          breaths: 0,
+          stories: 0,
+          tools: 0,
+          shares: 0,
+          aiChats: 0,
+          journalEntries: 0,
+          lastUpdated: new Date().toISOString()
+        };
+        setTodaysProgress(newProgress);
+        await storage.set(todayKey, newProgress);
+      }
+    } catch (error) {
+      console.error('Failed to load today\'s progress:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getTodayKey]);
+
+  // Update progress function
+  const updateProgress = useCallback(async (type: ActivityType, increment: number = 1) => {
+    try {
+      const todayKey = getTodayKey();
+      const updatedProgress = {
+        ...todaysProgress,
+        [type]: Math.max(0, todaysProgress[type] + increment),
+        lastUpdated: new Date().toISOString()
+      };
+      
+      setTodaysProgress(updatedProgress);
+      await storage.set(todayKey, updatedProgress);
+      
+      return updatedProgress;
+    } catch (error) {
+      console.error('Failed to update progress:', error);
+      return todaysProgress;
+    }
+  }, [todaysProgress, getTodayKey]);
+
+  // Reset progress (for testing or manual reset)
+  const resetProgress = useCallback(async () => {
+    try {
+      const todayKey = getTodayKey();
+      const resetProgress: DailyProgress = {
+        date: new Date().toDateString(),
+        breaths: 0,
+        stories: 0,
+        tools: 0,
+        shares: 0,
+        aiChats: 0,
+        journalEntries: 0,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      setTodaysProgress(resetProgress);
+      await storage.set(todayKey, resetProgress);
+      
+      return resetProgress;
+    } catch (error) {
+      console.error('Failed to reset progress:', error);
+      return todaysProgress;
+    }
+  }, [getTodayKey, todaysProgress]);
+
+  // Get weekly progress
+  const getWeeklyProgress = useCallback(async () => {
+    try {
+      const weeklyData: DailyProgress[] = [];
+      const today = new Date();
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = `daily_progress_${date.toDateString().replace(/\s/g, '_')}`;
+        
+        const dayProgress = await storage.get(dateKey, true);
+        if (dayProgress) {
+          weeklyData.push(dayProgress);
+        } else {
+          weeklyData.push({
+            date: date.toDateString(),
+            breaths: 0,
+            stories: 0,
+            tools: 0,
+            shares: 0,
+            aiChats: 0,
+            journalEntries: 0,
+            lastUpdated: date.toISOString()
+          });
+        }
+      }
+      
+      return weeklyData;
+    } catch (error) {
+      console.error('Failed to get weekly progress:', error);
+      return [];
+    }
+  }, []);
+
+  // Load progress on mount
+  useEffect(() => {
+    loadTodaysProgress();
+  }, [loadTodaysProgress]);
+
+  return {
+    todaysProgress,
+    isLoading,
+    updateProgress,
+    resetProgress,
+    refreshProgress: loadTodaysProgress,
+    getWeeklyProgress,
+  };
+}
+
+/**
+ * Export for global activity tracking
+ */
+export const ActivityTracker = {
+  // Static methods for one-off tracking without hooks
+  async trackActivity(type: ActivityType, increment: number = 1): Promise<void> {
+    try {
+      const todayKey = `daily_progress_${new Date().toDateString().replace(/\s/g, '_')}`;
+      const currentProgress = await storage.get(todayKey, true) || {
+        date: new Date().toDateString(),
+        breaths: 0,
+        stories: 0,
+        tools: 0,
+        shares: 0,
+        aiChats: 0,
+        journalEntries: 0,
+        lastUpdated: new Date().toISOString()
+      };
+
+      const updatedProgress = {
+        ...currentProgress,
+        [type]: Math.max(0, currentProgress[type] + increment),
+        lastUpdated: new Date().toISOString()
+      };
+
+      await storage.set(todayKey, updatedProgress);
+    } catch (error) {
+      console.error('Failed to track activity:', error);
+    }
+  },
+
+  async getTodaysProgress(): Promise<DailyProgress> {
+    try {
+      const todayKey = `daily_progress_${new Date().toDateString().replace(/\s/g, '_')}`;
+      const progress = await storage.get(todayKey, true);
+      
+      return progress || {
+        date: new Date().toDateString(),
+        breaths: 0,
+        stories: 0,
+        tools: 0,
+        shares: 0,
+        aiChats: 0,
+        journalEntries: 0,
+        lastUpdated: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to get today\'s progress:', error);
+      return {
+        date: new Date().toDateString(),
+        breaths: 0,
+        stories: 0,
+        tools: 0,
+        shares: 0,
+        aiChats: 0,
+        journalEntries: 0,
+        lastUpdated: new Date().toISOString()
+      };
+    }
+  }
+}; 

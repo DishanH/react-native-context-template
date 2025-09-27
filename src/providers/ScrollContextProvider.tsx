@@ -16,7 +16,7 @@ export default function ScrollContextProvider({ children }: ScrollContextProvide
   const [scrollY, setScrollY] = useState(0);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
-  const [scrollTimer, setScrollTimer] = useState<NodeJS.Timeout | null>(null);
+  const [scrollTimer, setScrollTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null);
 
   // Handle the end of scrolling with debounce
@@ -29,7 +29,7 @@ export default function ScrollContextProvider({ children }: ScrollContextProvide
       setIsScrolling(false);
     }, SCROLL_TIMEOUT);
     
-    setScrollTimer(timer as unknown as NodeJS.Timeout);
+    setScrollTimer(timer);
   };
 
   // Clean up the timer when component unmounts
@@ -40,6 +40,33 @@ export default function ScrollContextProvider({ children }: ScrollContextProvide
       }
     };
   }, [scrollTimer]);
+
+  // Create onScroll handler
+  const onScroll = (event: any) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    
+    // Determine scroll direction
+    const direction = currentY > lastScrollY ? 'down' : 'up';
+    setScrollDirection(direction);
+    
+    // Check if scroll distance exceeds threshold
+    const isScrollingNow = Math.abs(currentY - lastScrollY) > SCROLL_THRESHOLD;
+    
+    if (isScrollingNow) {
+      // Hide tab bar when scrolling down past initial area
+      if (direction === 'down' && currentY > 10) {
+        setIsScrolling(true);
+      } else if (direction === 'up') {
+        // Show tab bar when scrolling up
+        setIsScrolling(false);
+      }
+      
+      handleScrollEnd();
+    }
+    
+    setLastScrollY(currentY);
+    setScrollY(currentY);
+  };
 
   // Create context value object
   const contextValue = {
@@ -68,7 +95,8 @@ export default function ScrollContextProvider({ children }: ScrollContextProvide
       setScrollY(value);
     },
     isScrolling,
-    setIsScrolling
+    setIsScrolling,
+    onScroll
   };
 
   return (

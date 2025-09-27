@@ -15,6 +15,23 @@ interface AnimatedHeaderProps {
   backgroundColor?: string;
   titleColor?: string;
   enableBlur?: boolean;
+  // Animation configuration
+  blurIntensity?: number;
+  blurTint?: "light" | "dark" | "default";
+  backgroundOpacity?: number;
+  shadowColor?: string;
+  // Layout configuration
+  horizontalPadding?: number;
+  sideElementMinWidth?: number;
+  titleMargin?: number;
+  titleFontSize?: number;
+  bottomPadding?: number;
+  // Animation thresholds
+  blurScrollThresholds?: [number, number, number];
+  blurOpacityRange?: [number, number, number];
+  shadowScrollThresholds?: [number, number];
+  shadowOpacityRange?: [number, number];
+  shadowElevationRange?: [number, number];
 }
 
 export default function AnimatedHeader({
@@ -24,49 +41,64 @@ export default function AnimatedHeader({
   backgroundColor = "white",
   titleColor = "#333",
   enableBlur = true,
+  // Animation configuration
+  blurIntensity = 80,
+  blurTint = "light",
+  backgroundOpacity = 0.85,
+  shadowColor = "#000",
+  // Layout configuration
+  horizontalPadding = 16,
+  sideElementMinWidth = 60,
+  titleMargin = 60,
+  titleFontSize,
+  bottomPadding = 8,
+  // Animation thresholds
+  blurScrollThresholds = [0, 80, 150],
+  blurOpacityRange = [0, 0.05, 0.1],
+  shadowScrollThresholds = [0, 50],
+  shadowOpacityRange = [0, 0.1],
+  shadowElevationRange = [0, 4],
 }: AnimatedHeaderProps) {
   const { scrollY } = useScrollVisibility();
-  const { headerHeight, safeAreaTop } = useHeader();
+  const { headerHeight, safeAreaTop, headerContentHeight } = useHeader();
 
   const isIOS = Platform.OS === "ios";
-  const rowHeight = Math.max(0, headerHeight - safeAreaTop);
-  const titleFontSize = isIOS ? 18 : 20;
+  const defaultTitleFontSize = isIOS ? 17 : 20;
+  const finalTitleFontSize = titleFontSize || defaultTitleFontSize;
   // Animated style for blur effect
   const animatedBlurStyle = useAnimatedStyle(() => {
     if (!enableBlur) return { opacity: 0 };
 
-    const opacity = interpolate(scrollY, [0, 80, 150], [0, 0.05, 0.1], "clamp");
+    const opacity = interpolate(scrollY, blurScrollThresholds, blurOpacityRange, "clamp");
 
     return {
       opacity,
     };
   });
 
-  // Animated style for background opacity - keep background color constant
+  // Animated style for background opacity - configurable transparency
   const animatedBackgroundStyle = useAnimatedStyle(() => {
     return {
-      opacity: 0.85, // Light transparency but constant
+      opacity: backgroundOpacity,
     };
   });
 
   // Animated style for header shadow/elevation when scrolling
   const animatedHeaderStyle = useAnimatedStyle(() => {
-    const shouldShowShadow = scrollY > 10;
-    
     return Platform.OS === 'ios' ? {
-      shadowOpacity: interpolate(scrollY, [0, 50], [0, 0.1], "clamp"),
+      shadowOpacity: interpolate(scrollY, shadowScrollThresholds, shadowOpacityRange, "clamp"),
     } : {
-      elevation: interpolate(scrollY, [0, 50], [0, 4], "clamp"),
+      elevation: interpolate(scrollY, shadowScrollThresholds, shadowElevationRange, "clamp"),
     };
   });
 
   return (
     <Animated.View style={[
-      styles.headerContainer, 
+      styles.headerContainer,
       { height: headerHeight },
       animatedHeaderStyle,
       {
-        shadowColor: "#000",
+        shadowColor,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
       }
@@ -84,23 +116,48 @@ export default function AnimatedHeader({
       {enableBlur && (
         <Animated.View style={[StyleSheet.absoluteFill, animatedBlurStyle]}>
           <BlurView
-            intensity={80}
-            tint="light"
+            intensity={blurIntensity}
+            tint={blurTint}
             style={StyleSheet.absoluteFill}
           />
         </Animated.View>
       )}
 
       {/* Content */}
-      <View style={[styles.headerContent, { paddingTop: safeAreaTop }]}>
-        <View style={[styles.headerRow, { height: rowHeight }]}>
+      <View style={[
+        styles.headerContent,
+        {
+          paddingTop: safeAreaTop,
+          paddingBottom: bottomPadding,
+        }
+      ]}>
+        <View style={[
+          styles.headerRow,
+          {
+            height: headerContentHeight,
+            paddingHorizontal: horizontalPadding,
+          }
+        ]}>
           {/* Left section */}
-          <View style={[styles.headerLeft, { height: rowHeight }]}>
+          <View style={[
+            styles.headerLeft,
+            {
+              height: headerContentHeight,
+              minWidth: sideElementMinWidth,
+            }
+          ]}>
             {headerLeft}
           </View>
 
           {/* Absolutely positioned centered title */}
-          <View style={styles.headerCenterAbsolute}>
+          <View style={[
+            styles.headerCenterAbsolute,
+            {
+              height: headerContentHeight,
+              left: titleMargin,
+              right: titleMargin,
+            }
+          ]}>
             <Text
               numberOfLines={1}
               ellipsizeMode="tail"
@@ -108,12 +165,8 @@ export default function AnimatedHeader({
                 styles.headerTitle,
                 {
                   color: titleColor,
-                  textAlign: "center",
-                  fontSize: titleFontSize,
+                  fontSize: finalTitleFontSize,
                 },
-                isIOS
-                  ? { includeFontPadding: false, textAlignVertical: "center" }
-                  : null,
               ]}
             >
               {title}
@@ -121,7 +174,13 @@ export default function AnimatedHeader({
           </View>
 
           {/* Right section */}
-          <View style={[styles.headerRight, { height: rowHeight }]}>
+          <View style={[
+            styles.headerRight,
+            {
+              height: headerContentHeight,
+              minWidth: sideElementMinWidth,
+            }
+          ]}>
             {headerRight}
           </View>
         </View>
@@ -147,26 +206,30 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    position: "relative",
+    justifyContent: "space-between",
   },
   headerLeft: {
     alignItems: "flex-start",
-    flex: 1,
+    justifyContent: "center",
+    paddingLeft: 0,
+    flex: 0,
   },
   headerCenterAbsolute: {
     position: "absolute",
-    left: 0,
-    right: 0,
     alignItems: "center",
     justifyContent: "center",
     pointerEvents: "none", // Allow touches to pass through to left/right elements
   },
   headerRight: {
     alignItems: "flex-end",
-    flex: 1,
+    justifyContent: "center",
+    paddingRight: 0,
+    flex: 0,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
+    textAlign: "center",
   },
 });

@@ -16,6 +16,13 @@ interface StorageInfo {
   totalSize: string;
 }
 
+interface StorageStats {
+  totalKeys: number;
+  chunkedKeys: number;
+  totalEstimatedSize: number;
+  authRelatedKeys: number;
+}
+
 function StorageDataContent() {
   const { colors } = useTheme();
   const { headerHeight, handleScroll } = useHeader();
@@ -25,9 +32,17 @@ function StorageDataContent() {
     totalSize: 'Calculating...',
   });
   const [isClearing, setIsClearing] = useState(false);
+  const [storageStats, setStorageStats] = useState<StorageStats>({
+    totalKeys: 0,
+    chunkedKeys: 0,
+    totalEstimatedSize: 0,
+    authRelatedKeys: 0,
+  });
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   useEffect(() => {
     calculateStorageUsage();
+    loadStorageStats();
   }, []);
 
   const formatBytes = (bytes: number): string => {
@@ -116,6 +131,30 @@ function StorageDataContent() {
     }
   };
 
+  const loadStorageStats = async () => {
+    try {
+      const stats = await storage.getStorageStats();
+      setStorageStats(stats);
+    } catch (error) {
+      console.error('Error loading storage stats:', error);
+    }
+  };
+
+  const handleCleanupChunks = async () => {
+    try {
+      setIsClearing(true);
+      const cleaned = await storage.cleanupOrphanedChunks();
+      feedback.success('Cleanup Complete', `Cleaned up ${cleaned} orphaned chunk entries`);
+      await loadStorageStats();
+      await calculateStorageUsage();
+    } catch (error) {
+      console.error('Error cleaning up chunks:', error);
+      feedback.error('Error', 'Failed to cleanup chunked data');
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const clearCacheFiles = async () => {
     try {
       // Clear expo-image caches
@@ -182,16 +221,17 @@ function StorageDataContent() {
           style: 'destructive',
           onPress: async () => {
             setIsClearing(true);
-            try {
-              await clearCacheFiles();
-              feedback.success('Cache Cleared', 'Temporary files have been removed');
-              await calculateStorageUsage();
-            } catch (error) {
-              console.error('Error clearing cache:', error);
-              feedback.error('Error', 'Failed to clear cache. Please try again.');
-            } finally {
-              setIsClearing(false);
-            }
+              try {
+                await clearCacheFiles();
+                feedback.success('Cache Cleared', 'Temporary files have been removed');
+                await calculateStorageUsage();
+                await loadStorageStats();
+              } catch (error) {
+                console.error('Error clearing cache:', error);
+                feedback.error('Error', 'Failed to clear cache. Please try again.');
+              } finally {
+                setIsClearing(false);
+              }
           },
         },
       ]
@@ -231,6 +271,7 @@ function StorageDataContent() {
                       await Promise.all([clearDocumentFiles(), clearCacheFiles()]);
                       feedback.success('Data Cleared', 'App has been reset');
                       await calculateStorageUsage();
+                      await loadStorageStats();
                       setTimeout(() => {
                         router.back();
                       }, 1200);
@@ -253,7 +294,7 @@ function StorageDataContent() {
   return (
     <ScrollView 
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight + 20 }]}
+      contentContainerStyle={[styles.contentContainer, { paddingTop: headerHeight }]}
       onScroll={handleScroll}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
@@ -343,13 +384,108 @@ function StorageDataContent() {
           </View>
         </TouchableOpacity>
       </View>
+
+      {/* Debug Information */}
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.debugToggle}
+          onPress={() => {
+            feedback.buttonPress();
+            setShowDebugInfo(!showDebugInfo);
+          }}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            Debug Information
+          </Text>
+          <FontAwesome5 
+            name={showDebugInfo ? "chevron-up" : "chevron-down"} 
+            size={14} 
+            color={colors.textSecondary} 
+          />
+        </TouchableOpacity>
+        
+        {showDebugInfo && (
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.infoItem, { backgroundColor: colors.background }]}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.info + '20' }]}>
+                <FontAwesome5 name="key" size={14} color={colors.info} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, { color: colors.text }]}>Total Storage Keys</Text>
+                <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  {storageStats.totalKeys} total keys
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            <View style={[styles.infoItem, { backgroundColor: colors.background }]}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.warning + '20' }]}>
+                <FontAwesome5 name="puzzle-piece" size={14} color={colors.warning} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, { color: colors.text }]}>Chunked Data</Text>
+                <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  {storageStats.chunkedKeys} chunked entries (for large auth tokens)
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            <View style={[styles.infoItem, { backgroundColor: colors.background }]}>
+              <View style={[styles.iconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <FontAwesome5 name="shield-alt" size={14} color={colors.primary} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, { color: colors.text }]}>Auth-Related Keys</Text>
+                <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  {storageStats.authRelatedKeys} authentication storage entries
+                </Text>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            <TouchableOpacity
+              style={styles.optionItem}
+              onPress={handleCleanupChunks}
+              disabled={isClearing}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: colors.info + '20' }]}>
+                <FontAwesome5 name="tools" size={14} color={colors.info} />
+              </View>
+              <View style={styles.optionContent}>
+                <Text style={[styles.optionText, { color: colors.text }]}>Cleanup Chunks</Text>
+                <Text style={[styles.optionSubtext, { color: colors.textSecondary }]}>
+                  {isClearing ? 'Cleaning...' : 'Remove orphaned chunked data'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </ScrollView>
   );
 }
 
 export default function StorageDataScreen() {
+  const { colors } = useTheme();
+
+  // Custom back button to navigate to settings
+  const customBackButton = (
+    <TouchableOpacity
+      style={[styles.headerBackButton, { backgroundColor: colors.surface }]}
+      onPress={() => router.push('/settings')}
+    >
+      <FontAwesome5 name="arrow-left" size={18} color={colors.text} />
+    </TouchableOpacity>
+  );
+
+
   return (
-    <PageWithAnimatedHeader title="Storage & Data" showBackButton={true}>
+    <PageWithAnimatedHeader title="Storage & Data" headerLeft={customBackButton}>
       <StorageDataContent />
     </PageWithAnimatedHeader>
   );
@@ -450,5 +586,19 @@ const styles = StyleSheet.create({
   },
   dangerSubtext: {
     fontSize: 13,
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  debugToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
 }); 

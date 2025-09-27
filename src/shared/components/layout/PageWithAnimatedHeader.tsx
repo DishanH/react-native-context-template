@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import AnimatedHeader from './AnimatedHeader';
 import { CustomDrawerToggle, CustomBackButton } from '../../../navigation/components';
-import { useTheme, HeaderProvider } from '../../../../contexts';
+import { useTheme, HeaderProvider, useNavigationState } from '../../../../contexts';
 
 interface PageWithAnimatedHeaderProps {
   title: string;
@@ -10,6 +10,7 @@ interface PageWithAnimatedHeaderProps {
   showBackButton?: boolean;
   headerLeft?: React.ReactNode;
   headerRight?: React.ReactNode;
+  bottomPadding?: number;
 }
 
 export default function PageWithAnimatedHeader({
@@ -18,17 +19,20 @@ export default function PageWithAnimatedHeader({
   showBackButton = false,
   headerLeft,
   headerRight,
+  bottomPadding = 8,
 }: PageWithAnimatedHeaderProps) {
   const { colors } = useTheme();
+  const { showBackButton: showBackFromContext } = useNavigationState();
 
-  // Determine header left component
-  const leftComponent = headerLeft || (showBackButton ? <CustomBackButton /> : <CustomDrawerToggle />);
+  // Determine header left component - use context state or prop
+  const shouldShowBack = showBackFromContext || showBackButton;
+  const leftComponent = headerLeft || (shouldShowBack ? <CustomBackButton /> : <CustomDrawerToggle />);
 
   return (
-    <HeaderProvider>
+    <HeaderProvider bottomPadding={bottomPadding}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {children}
-        
+
         {/* Animated Header Overlay */}
         <AnimatedHeader
           title={title}
@@ -37,6 +41,7 @@ export default function PageWithAnimatedHeader({
           backgroundColor={colors.headerBackground}
           titleColor={colors.text}
           enableBlur={true}
+          bottomPadding={bottomPadding}
         />
       </View>
     </HeaderProvider>

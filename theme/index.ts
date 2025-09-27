@@ -23,7 +23,8 @@ export {
   DARK_PALETTE, 
   LIGHT_PALETTE, 
   STATUS_COLORS, 
-  BRAND_COLORS 
+  BRAND_COLORS,
+  BUTTON_COLORS 
 } from './palettes';
 
 // Re-export commonly used types for convenience

@@ -20,17 +20,17 @@ export interface ThemeColors {
   surface: string;             // Card, modal, and component backgrounds
   surfaceVariant: string;      // Alternative surface color for emphasis
   headerBackground: string;    // Navigation header background
-  
+
   // Text colors - for all text elements
   text: string;               // Primary text color
   textSecondary: string;      // Secondary/subtitle text color
-  
+
   // UI element colors - main brand and interaction colors
   primary: string;            // Primary brand color
   primaryDark: string;        // Darker variant of primary color
   secondary: string;          // Secondary accent color
   accent: string;             // Highlight and accent color
-  
+
   // Status colors - for notifications, alerts, and states
   success: string;            // Success messages and positive actions
   warning: string;            // Warning messages and caution states
@@ -43,7 +43,7 @@ export interface ThemeColors {
   icon: string;               // Default icon color
   statusActive: string;       // Active state indicator
   statusInactive: string;     // Inactive state indicator
-  
+
   // Button variant colors - semantic button styles
   buttonPrimary: string;           // Primary button background
   buttonPrimaryText: string;       // Primary button text
@@ -56,7 +56,7 @@ export interface ThemeColors {
   buttonGhost: string;             // Ghost button background (transparent)
   buttonGhostText: string;         // Ghost button text
   buttonLink: string;              // Link button text color
-  
+
   // Navigation drawer specific colors
   drawerBackground: string;           // Drawer main background
   drawerItemBackground: string;       // Individual drawer item background

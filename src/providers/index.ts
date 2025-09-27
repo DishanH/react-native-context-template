@@ -1,2 +1,3 @@
 export { BottomSheetProvider, useBottomSheet } from './BottomSheetProvider';
-export { default as ScrollContextProvider } from './ScrollContextProvider'; 
+export { default as ScrollContextProvider } from './ScrollContextProvider';
+export { FullScreenProvider, useFullScreen } from './FullScreenProvider'; 

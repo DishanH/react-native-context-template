@@ -301,8 +301,19 @@ function EditProfileContent() {
 }
 
 export default function EditProfileScreen() {
+    const { colors } = useTheme();
+  
+    // Custom back button
+    const customBackButton = (
+      <TouchableOpacity
+        style={[styles.headerBackButton, { backgroundColor: colors.surface }]}
+        onPress={() => router.push('/settings')}
+      >
+        <FontAwesome5 name="arrow-left" size={18} color={colors.text} />
+      </TouchableOpacity>
+    );
   return (
-    <PageWithAnimatedHeader title="Edit Profile" showBackButton={true}>
+    <PageWithAnimatedHeader title="Edit Profile" headerLeft={customBackButton}>
       <EditProfileContent />
     </PageWithAnimatedHeader>
   );
@@ -468,5 +479,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
 }); 

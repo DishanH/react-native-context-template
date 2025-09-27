@@ -36,9 +36,6 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({ childre
       setHeight(newHeight);
     }
     setIsOpen(true);
-    setTimeout(() => {
-      sheetRef.current?.snapToIndex(0);
-    }, 100);
   }, []);
 
   // Function to close the bottom sheet
@@ -84,7 +81,7 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({ childre
             enableDynamicSizing={false}
             enablePanDownToClose={true}
             onChange={handleSheetChange}
-            index={-1}
+            index={0}
             handleIndicatorStyle={{ backgroundColor: colors.border }}
             backgroundStyle={{ backgroundColor: colors.background }}
             backdropComponent={renderBackdrop}

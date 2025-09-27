@@ -24,7 +24,11 @@ export class AppleAuthService {
       });
 
       if (credential.identityToken) {
-        const { data, error } = await database.getSupabaseClient().auth.signInWithIdToken({
+        const supabase = database.getSupabaseClient();
+        if (!supabase) {
+          throw new Error('Supabase client not initialized');
+        }
+        const { data, error } = await supabase.auth.signInWithIdToken({
           provider: 'apple',
           token: credential.identityToken,
           nonce: credential.authorizationCode ? 
@@ -44,7 +48,11 @@ export class AppleAuthService {
             .join(' ');
 
           if (displayName) {
-            await database.getSupabaseClient().auth.updateUser({
+            const supabaseUpdate = database.getSupabaseClient();
+            if (!supabaseUpdate) {
+              throw new Error('Supabase client not initialized');
+            }
+            await supabaseUpdate.auth.updateUser({
               data: { full_name: displayName },
             });
           }

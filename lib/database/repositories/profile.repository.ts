@@ -1,6 +1,6 @@
 import { BaseRepository, DatabaseResponse } from '../core/base-repository';
 import { storage } from '../../storage';
-import type { Profile, ProfileInsert, ProfileUpdate } from '../../../types/database';
+import type { Profile, ProfileInsert, ProfileUpdate } from '../types/database';
 
 export class ProfileRepository extends BaseRepository {
   constructor() {
@@ -21,10 +21,14 @@ export class ProfileRepository extends BaseRepository {
           .from('profiles')
           .select('*')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
-        return data;
+        // Handle PGRST116 (no rows) gracefully - this is expected for new users
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        return data; // Will be null if no profile exists, which is fine
       },
       // Offline fallback
       async () => {

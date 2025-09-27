@@ -1,6 +1,6 @@
 import { BaseRepository, DatabaseResponse } from '../core/base-repository';
 import { storage } from '../../storage';
-import type { UserPreferences, UserPreferencesData } from '../../../types/database';
+import type { UserPreferences, UserPreferencesData } from '../types/database';
 
 export class PreferencesRepository extends BaseRepository {
   constructor() {

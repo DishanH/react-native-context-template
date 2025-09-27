@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { database } from '../lib/database';
 
@@ -10,20 +10,26 @@ export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastEventRef = useRef<{ event: string; userId?: string; timestamp: number } | null>(null);
 
   useEffect(() => {
     // Get initial session with better error handling
     const getInitialSession = async () => {
       try {
-        console.log('useAuth: Getting initial session...');
         const session = await database.getSession();
         
         if (session) {
-          console.log('useAuth: Found valid session for user:', session.user?.id);
+          // Only log if this is a different user or first time
+          const currentUserId = session.user?.id;
+          const lastEvent = lastEventRef.current;
+          
+          if (!lastEvent || lastEvent.userId !== currentUserId) {
+            console.log('useAuth: Found valid session for user:', currentUserId);
+          }
+          
           setSession(session);
           setUser(session.user);
         } else {
-          console.log('useAuth: No session found');
           setSession(null);
           setUser(null);
         }
@@ -62,10 +68,24 @@ export const useAuth = () => {
 
     initializeWithDelay();
 
-    // Listen for auth changes
+    // Listen for auth changes with debouncing
     const { data: { subscription } } = database.onAuthStateChange(
       (event, session) => {
-        console.log('useAuth: Auth state changed:', event, session?.user?.id);
+        const currentUserId = session?.user?.id;
+        const now = Date.now();
+        const lastEvent = lastEventRef.current;
+        
+        // Debounce rapid successive events for the same user
+        const shouldLog = !lastEvent || 
+          lastEvent.userId !== currentUserId || 
+          lastEvent.event !== event ||
+          now - lastEvent.timestamp > 2000; // 2 second cooldown
+        
+        if (shouldLog) {
+          console.log('useAuth: Auth state changed:', event, currentUserId);
+          lastEventRef.current = { event, userId: currentUserId, timestamp: now };
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);

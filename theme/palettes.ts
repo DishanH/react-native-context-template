@@ -56,6 +56,19 @@ export const LIGHT_PALETTE: ColorPalette = {
 // };
 
 // ========================================
+// NEW OPTION: Matte White with Sophisticated Dark Secondary
+// ========================================
+
+// Option 6: Matte White Elegance
+// export const LIGHT_PALETTE: ColorPalette = {
+//   darkest: '#1F2937',    // Deep charcoal gray for primary text
+//   darker: '#374151',     // Rich slate gray for secondary text and elements
+//   medium: '#D1D5DB',     // Soft gray for borders and dividers
+//   light: '#F9FAFB',      // Subtle off-white for surface variants
+//   lightAlt: '#FAF6F3'    // Matte white (very slightly off-white) for main backgrounds
+// };
+
+// ========================================
 // ALTERNATIVE OPTIONS (uncomment to try)
 // ========================================
 
@@ -159,8 +172,38 @@ export const STATUS_COLORS = {
  * These represent your app's brand identity
  */
 export const BRAND_COLORS = {
-  primary: '#52616B',      // Main brand color
-  primaryDark: '#3F4E57',  // Darker variant for interactions
-  secondary: '#C9D6DF',    // Secondary brand color
-  accent: '#8FA3AD'        // Accent color for highlights
+  primary: '#3B82F6',      // Modern blue - main brand color
+  primaryDark: '#2563EB',  // Darker blue variant for interactions
+  secondary: '#E0E7FF',    // Light blue secondary brand color
+  accent: '#6366F1'        // Indigo accent color for highlights
+};
+
+/**
+ * Button colors - semantic button colors for both themes
+ * Provides consistent button styling across light and dark modes
+ */
+export const BUTTON_COLORS = {
+  // Primary button colors
+  primaryBlue: '#2563EB',        // Rich blue for light theme primary
+  primaryBlueDark: '#4F8EF7',    // Vibrant blue for dark theme primary
+  primaryText: '#FFFFFF',        // White text on primary buttons
+
+  // Secondary button colors
+  secondaryLight: '#F1F5F9',     // Light secondary button background
+  secondaryDark: '#374357',      // Dark secondary button background
+  secondaryTextLight: '#334155', // Dark text on light secondary
+  secondaryTextDark: '#E1E8F0',  // Light text on dark secondary
+
+  // Destructive button colors
+  destructive: '#DC2626',        // Red for light theme destructive
+  destructiveDark: '#FF6B6B',    // Softer red for dark theme destructive
+  destructiveText: '#FFFFFF',    // White text on destructive buttons
+
+  // Ghost and link colors
+  ghostTextLight: '#64748B',     // Subtle slate for light theme ghost
+  ghostTextDark: '#B8C5D1',      // Subtle gray for dark theme ghost
+
+  // Outline colors (uses primary blues)
+  outlineLight: '#2563EB',       // Same as primary blue light
+  outlineDark: '#4F8EF7'         // Same as primary blue dark
 }; 

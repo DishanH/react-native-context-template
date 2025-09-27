@@ -6,6 +6,7 @@ export const ScrollContext = createContext({
   setScrollY: (value: number) => {},
   isScrolling: false,
   setIsScrolling: (value: boolean) => {},
+  onScroll: (event: any) => {},
 });
 
 export const useScrollVisibility = () => useContext(ScrollContext); 
