@@ -188,7 +188,7 @@ export function CustomDrawerContent(props: any) {
         
         {/* App Version */}
         <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-          Raising Humans v1.0.0
+          My App v1.0.0
         </Text>
       </View>
     </View>

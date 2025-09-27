@@ -1,4 +1,4 @@
-// Database schema types generated for Raising Human App
+// Database schema types generated for My App
 // Complete database schema with all tables
 
 export type Json =

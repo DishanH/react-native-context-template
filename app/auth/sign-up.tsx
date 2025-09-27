@@ -148,10 +148,10 @@ const SignUpScreen = () => {
               <Ionicons name="heart" size={32} color={colors.primary} />
             </View>
             <Text style={[styles.title, { color: colors.text }]}>
-              Join RaisingHuman
+              Join Us!
             </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Start your parenting journey with evidence-based guidance and a supportive community
+              Start your journey with evidence-based guidance and a supportive community
             </Text>
           </View>
 

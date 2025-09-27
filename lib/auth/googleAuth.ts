@@ -8,7 +8,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export class GoogleAuthService {
   private static redirectUri = AuthSession.makeRedirectUri({
-    scheme: process.env.EXPO_PUBLIC_APP_SCHEME || 'rn-raisinghuman', // Updated to match app.json scheme
+    scheme: process.env.EXPO_PUBLIC_APP_SCHEME || 'rn-my-app', // Updated to match app.json scheme
     path: 'auth/callback',
   });
 
