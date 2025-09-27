@@ -179,7 +179,7 @@ const ForgotPasswordScreen = () => {
                 Forgot Password?
               </Text>
               <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                Don't worry! We'll help you get back to your parenting journey
+                Don't worry! We'll help you get back to your journey
               </Text>
             </View>
 
